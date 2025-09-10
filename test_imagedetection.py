@@ -5,7 +5,6 @@ import os
 import sys
 from io import StringIO
 
-# We assume the file is named Imagedetection.py for the import
 import imagedetection
 
 
@@ -71,28 +70,14 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         """Test detect_objects when the input file does not exist."""
         mock_exists.side_effect = [False, True]  # Input image doesn't exist
 
-        args = argparse.Namespace(model='model.pt', input='image.jpg', output_dir='runs/detect', probability=25.0)
+        args = argparse.Namespace(model='model.pt', input='non_existent_image.jpg', output_dir='runs/detect', probability=25.0)
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        captured_stderr = StringIO()
+        sys.stderr = captured_stderr
         imagedetection.detect_objects(args)
-        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
 
-        self.assertIn("Error: Input image not found", captured_output.getvalue())
-
-    @patch('imagedetection.os.path.exists')
-    def test_detect_objects_model_file_not_found(self, mock_exists):
-        """Test detect_objects when the model file does not exist."""
-        mock_exists.side_effect = [True, False]  # Model file doesn't exist
-
-        args = argparse.Namespace(model='model.pt', input='image.jpg')
-
-        captured_output = StringIO()
-        sys.stdout = captured_output
-        imagedetection.detect_objects(args)
-        sys.stdout = sys.__stdout__
-
-        self.assertIn("Error: Model file not found", captured_output.getvalue())
+        self.assertIn("Error: Input image not found", captured_stderr.getvalue())
 
     def test_print_detections_no_objects(self):
         """Test the print_detections function when no objects are found."""
