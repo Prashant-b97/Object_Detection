@@ -69,6 +69,7 @@ To train a model, you need a dataset YAML file (like `coco8.yaml`).
  
 ```bash
 python imagedetection.py train \
+    --data my_dataset.yaml \
     --data path/to/your_dataset.yaml \
     --epochs 50 \
     --batch-size 8
