@@ -37,7 +37,7 @@ Below is an example of running the detector on a sample image.
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repository-url>
+    git clone https://github.com/Prashant-b97/ObjectDetection.git
     cd ObjectDetection
     ```
 
