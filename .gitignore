@@ -16,3 +16,7 @@ datasets/
 
 # OS generated files
 .DS_Store
+
+# Editor-specific files
+.vscode/
+.ipynb_checkpoints/
