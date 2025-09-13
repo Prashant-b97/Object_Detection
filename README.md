@@ -11,9 +11,10 @@ This project provides a command-line tool for training custom YOLOv8 object dete
 ## Sample Detection
 
 Below is an example of running the detector on a sample image.
-| Input Image | Output Detection |
-![alt text](<ChatGPT Image Sep 9, 2025, 10_27_21 PM.png>)|![alt text](<runs/detect/predict/ChatGPT Image Sep 9, 2025, 10_27_21 PM.jpg>)|
-| !Sample Input | !Sample Output |
+| Input Image |
+![alt text](<Street Scene.png>)|
+| Output Image |
+![alt text](<runs/detect/predict/Street Scene.jpg>)
 
 
 ---
@@ -64,15 +65,13 @@ python imagedetection.py train \
 
 The best trained model will be saved in the `runs/train/.../weights/` directory as `best.pt`.
 
-### Detecting Objects in an Image
-
-Use the `detect` command to run inference on an image. You must provide a path to a model file (`.pt`).
+### Detecting Objects
 
 **Example using a pretrained model:**
-*(The script will auto-download `yolov8n.pt` if not present)*
+*(The script will auto-download standard models like `yolov8n.pt` if not present)*
 ```bash
 python imagedetection.py detect \
-    --input sample_input/image.jpg \
+    --input "path/to/your/image.jpg" \
     --model yolov8n.pt
 ```
 

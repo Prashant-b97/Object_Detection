@@ -70,7 +70,7 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         """Test detect_objects when the input file does not exist."""
         mock_exists.side_effect = [False, True]  # Input image doesn't exist
 
-        args = argparse.Namespace(model='model.pt', input='non_existent_image.jpg', output_dir='runs/detect', probability=25.0)
+        args = argparse.Namespace(model='model.pt', input='image.jpg', output_dir='runs/detect', probability=25.0)
 
         captured_stderr = StringIO()
         sys.stderr = captured_stderr
