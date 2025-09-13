@@ -12,7 +12,7 @@ This project provides a command-line tool for training custom YOLOv8 object dete
 
 Below is an example of running the detector on a sample image.
 | Input Image |
-![alt text](<Street Scene.png>)|
+![alt text](<Street Scene.png>)
 | Output Image |
 ![alt text](<runs/detect/predict/Street Scene.jpg>)
 
@@ -68,7 +68,7 @@ The best trained model will be saved in the `runs/train/.../weights/` directory 
 ### Detecting Objects
 
 **Example using a pretrained model:**
-*(The script will auto-download standard models like `yolov8n.pt` if not found locally)*
+*(The script will auto-download standard models like `yolov8n.pt` if not found locally.)*
 ```bash
 python imagedetection.py detect \
     --input "path/to/your/image.jpg" \
