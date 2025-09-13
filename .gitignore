@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+.env
+
+# Ultralytics / Machine Learning
+runs/
+datasets/
+*.pt
+*.pth
+*.weights
+*.h5
+
+# OS generated files
+.DS_Store

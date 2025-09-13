@@ -1,0 +1,11 @@
+# Path to the training images directory
+train: ./<YOUR_DATASET_FOLDER_NAME>/train/images
+
+# Path to the validation images directory
+val: ./<YOUR_DATASET_FOLDER_NAME>/validation/images
+
+# Number of classes in your dataset
+nc: 3
+
+# Class names, in the same order as your dataset annotations
+names: ['person', 'bottle', 'chair']

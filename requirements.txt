@@ -1,0 +1,2 @@
+ultralytics
+# Add other direct dependencies here if any
