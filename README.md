@@ -11,7 +11,7 @@ Below is an example of running the detector on a sample image.
 | Input Image |
 ![alt text](<Street Scene.png>)
 | Output Image |
-![alt text](</Users/prashantbhardwaj/Downloads/ObjectDetection/runs/detect/predict/Street Scene.jpg>)
+![alt text](<Street Scene.jpg>)
 
 
 ---
