@@ -26,19 +26,12 @@ Below is an example of running the detector on a sample image.
 
 ---
 
-## Prerequisites
-
-- Python 3.8 or later
-- Git
-
----
-
-## Setup
+## Installation
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/Prashant-b97/ObjectDetection.git
-    cd ObjectDetection
+    git clone https://github.com/Prashant-b97/Object_Detection.git
+    cd Object_Detection
     ```
 
 2.  **Create and activate a virtual environment:**
@@ -46,10 +39,6 @@ Below is an example of running the detector on a sample image.
     # For macOS/Linux
     python3 -m venv venv
     source venv/bin/activate
-
-    # For Windows
-    python -m venv venv
-    venv\Scripts\activate
     ```
 
 3.  **Install the required packages:**
@@ -69,7 +58,6 @@ To train a model, you need a dataset YAML file (like `coco8.yaml`).
  
 ```bash
 python imagedetection.py train \
-    --data my_dataset.yaml \
     --data path/to/your_dataset.yaml \
     --epochs 50 \
     --batch-size 8

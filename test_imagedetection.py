@@ -5,8 +5,8 @@ import os
 import sys
 from io import StringIO
 
+# We need to import the module to be tested
 import imagedetection
-
 
 class TestYoloV8ImageDetection(unittest.TestCase):
 
@@ -78,6 +78,20 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         sys.stderr = sys.__stderr__
 
         self.assertIn("Error: Input image not found", captured_stderr.getvalue())
+
+    @patch('imagedetection.os.path.exists')
+    def test_detect_objects_model_file_not_found(self, mock_exists):
+        """Test detect_objects when the model file does not exist."""
+        mock_exists.side_effect = [True, False]  # Model file doesn't exist
+
+        args = argparse.Namespace(model='model.pt', input='image.jpg')
+
+        captured_stderr = StringIO()
+        sys.stderr = captured_stderr
+        imagedetection.detect_objects(args)
+        sys.stderr = sys.__stderr__
+
+        self.assertIn("Error: Model file not found", captured_stderr.getvalue())
 
     def test_print_detections_no_objects(self):
         """Test the print_detections function when no objects are found."""
