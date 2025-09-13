@@ -34,14 +34,13 @@ Below is an example of running the detector on a sample image.
     cd Object_Detection
     ```
 
-2.  **Create and activate a virtual environment:**
+2.  **Create a virtual environment (recommended):**
     ```bash
-    # For macOS/Linux
     python3 -m venv venv
     source venv/bin/activate
     ```
 
-3.  **Install the required packages:**
+3.  **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
