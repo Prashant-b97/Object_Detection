@@ -68,7 +68,7 @@ The best trained model will be saved in the `runs/train/.../weights/` directory 
 ### Detecting Objects
 
 **Example using a pretrained model:**
-*(The script will auto-download standard models like `yolov8n.pt` if not present)*
+*(The script will auto-download standard models like `yolov8n.pt` if not found locally)*
 ```bash
 python imagedetection.py detect \
     --input "path/to/your/image.jpg" \

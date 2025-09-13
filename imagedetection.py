@@ -76,7 +76,7 @@ def main():
     # --- Parser for the 'detect' command ---
     parser_detect = subparsers.add_parser("detect", help="Detect objects in an image with a trained YOLO model.")
     parser_detect.add_argument(
-        "-i", "--input", default="/Users/prashantbhardwaj/Downloads/ObjectDetection/ChatGPT Image Sep 9, 2025, 10_27_21 PM.png", help="Path to the input image file."
+        "-i", "--input", default="sample_input/image.jpg", help="Path to the input image file."
     )
     parser_detect.add_argument(
         "-m", "--model", required=True, help="Path to the trained YOLO model file (.pt)."
