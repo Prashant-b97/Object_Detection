@@ -5,16 +5,13 @@
 
 This project provides a command-line tool for training custom YOLOv8 object detection models and running inference on images. It is built using the `ultralytics` Python library.
 
-
-This project provides a command-line tool for training custom YOLOv8 object detection models and running inference on images. It is built using the `ultralytics` Python library.
-
 ## Sample Detection
 
 Below is an example of running the detector on a sample image.
 | Input Image |
 ![alt text](<Street Scene.png>)
 | Output Image |
-![alt text](<runs/detect/predict/Street Scene.jpg>)
+![alt text](</Users/prashantbhardwaj/Downloads/ObjectDetection/runs/detect/predict/Street Scene.jpg>)
 
 
 ---
