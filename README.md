@@ -13,6 +13,11 @@ Below is an example of running the detector on a sample image.
 | Output Image |
 ![alt text](<Street Scene.jpg>)
 
+### Video Detection in Action
+
+The script can process videos and live webcam feeds, applying object detection in real-time.
+![Video Detection Demo](assets/video_detection_demo.gif)
+
 
 ---
 
