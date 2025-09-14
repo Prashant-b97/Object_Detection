@@ -5,34 +5,38 @@ import os
 import datetime
 import sys
 import argparse
+import cv2
 from ultralytics import YOLO
-from typing import List, Any
+from typing import List
 
-def print_detections(results: List[Any]):
+# Import from our new core library
+from detector.core import ObjectDetector, Detection
+
+def print_detections(detections: List[Detection], output_dir: str):
     """Prints a summary of the detection results."""
-    # The results object contains lots of information. We'll just print a summary.
-    # Assumes results are for a single image.
-    result = results[0]
-    print(f"\nOutput image saved in: {result.save_dir}")
-    print(f"Total objects detected: {len(result.boxes)}")
+    print(f"\nOutput image saved in: {output_dir}")
+    print(f"Total objects detected: {len(detections)}")
     
-    if not len(result.boxes):
+    if not detections:
         print("\n- No objects detected.")
         return
 
     print("\n--- Detected Objects ---")
-    names = result.names
-    for box in result.boxes:
-        class_id = int(box.cls[0])
-        class_name = names[class_id]
-        confidence = float(box.conf[0])
-        # Get bounding box coordinates in (top, left, bottom, right) format
-        coords = box.xyxy[0].tolist()
-        coords = [round(x) for x in coords]
-        print(f"- Class: {class_name} ({confidence:.2%})")
-        print(f"  - Bounding Box: [x1: {coords[0]}, y1: {coords[1]}, x2: {coords[2]}, y2: {coords[3]}]")
+    for det in detections:
+        print(f"- Class: {det.class_name} ({det.confidence:.2%})")
+        print(f"  - Bounding Box: [x1: {det.box.x1}, y1: {det.box.y1}, x2: {det.box.x2}, y2: {det.box.y2}]")
     print("------------------------")
 
+def draw_detections(image: cv2.typing.MatLike, detections: List[Detection]) -> cv2.typing.MatLike:
+    """Draws detection bounding boxes and labels on an image."""
+    output_image = image.copy()
+    for det in detections:
+        # Draw rectangle
+        cv2.rectangle(output_image, (det.box.x1, det.box.y1), (det.box.x2, det.box.y2), (36, 255, 12), 2)
+        # Prepare and draw label
+        label = f"{det.class_name}: {det.confidence:.2%}"
+        cv2.putText(output_image, label, (det.box.x1, det.box.y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (36, 255, 12), 2)
+    return output_image
 
 def detect_objects(args: argparse.Namespace):
     """Handles object detection using YOLOv8."""
@@ -44,24 +48,33 @@ def detect_objects(args: argparse.Namespace):
         return
 
     try:
-        print("Loading YOLOv8 model...")
-        model = YOLO(model_path)
+        # 1. Initialize our core detector
+        detector = ObjectDetector(model_path)
 
+        # 2. Read the image
+        image = cv2.imread(input_image_path)
+        if image is None:
+            sys.stderr.write(f"Error: Could not read image file at {input_image_path}\n")
+            return
+
+        # 3. Perform detection using the core library
         print("Starting object detection...")
-        # Generate a unique name for the output directory using a timestamp
-        run_name = f"detect_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-
-        # Run inference. The library handles drawing boxes and saving the image.
-        results = model.predict(
-            source=input_image_path,
-            save=True,
-            conf=args.probability / 100.0,  # Convert percentage to 0-1 scale
-            project=args.output_dir,
-            name=run_name,
-            exist_ok=True  # Allow writing to an existing directory
-        )
+        confidence = args.probability / 100.0
+        detections = detector.detect_from_image(image, conf_threshold=confidence)
         print("Detection complete.")
-        print_detections(results)
+
+        # 4. Draw detections on the image
+        output_image = draw_detections(image, detections)
+
+        # 5. Save the output image
+        run_name = f"detect_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        output_dir = os.path.join(args.output_dir, run_name)
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, os.path.basename(input_image_path))
+        cv2.imwrite(output_path, output_image)
+
+        # 6. Print results to the console
+        print_detections(detections, output_dir)
     except Exception as e:
         sys.stderr.write(f"An error occurred during detection: {e}\n")
 
