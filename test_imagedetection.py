@@ -23,8 +23,10 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         mock_predict_result.save_dir = '/fake/run/detect'
         box1 = MagicMock()
         box1.cls, box1.conf = [0], [0.95]
+        box1.xyxy = [[10, 20, 30, 40]]
         box2 = MagicMock()
         box2.cls, box2.conf = [1], [0.80]
+        box2.xyxy = [[50, 60, 70, 80]]
         mock_predict_result.boxes = [box1, box2]
         mock_predict_result.names = {0: 'person', 1: 'car'}
         mock_model_instance.predict.return_value = [mock_predict_result]
@@ -55,15 +57,18 @@ class TestYoloV8ImageDetection(unittest.TestCase):
             save=True,
             conf=0.25,
             project='runs/detect',
+            name=ANY,  # Check that a run name was provided
             exist_ok=True
         )
         output = captured_output.getvalue()
-        self.assertIn("Loading YOLOv8 model and starting object detection...", output)
+        self.assertIn("Loading YOLOv8 model...", output)
+        self.assertIn("Starting object detection...", output)
         self.assertIn("Detection complete.", output)
         self.assertIn("Output image saved in: /fake/run/detect", output)
         self.assertIn("Total objects detected: 2", output)
-        self.assertIn("- person (95.00%)", output)
-        self.assertIn("- car (80.00%)", output)
+        self.assertIn("- Class: person (95.00%)", output)
+        self.assertIn("- Class: car (80.00%)", output)
+        self.assertIn("Bounding Box: [x1: 10, y1: 20, x2: 30, y2: 40]", output)
 
     @patch('imagedetection.os.path.exists')
     def test_detect_objects_input_file_not_found(self, mock_exists):
@@ -139,14 +144,14 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         self.assertEqual(call_args.input, 'i.jpg')
 
     @patch('imagedetection.train_model')
-    def test_main_train_command(self, mock_train_model):
+    def test_main_train_command(self, mock_train):
         """Test that main calls train_model for the 'train' command."""
         test_args = ['imagedetection.py', 'train', '--data', 'd.yaml', '--epochs', '5']
         with patch.object(sys, 'argv', test_args):
             imagedetection.main()
         
-        mock_train_model.assert_called_once()
-        call_args = mock_train_model.call_args[0][0]
+        mock_train.assert_called_once()
+        call_args = mock_train.call_args[0][0]
         self.assertEqual(call_args.command, 'train')
         self.assertEqual(call_args.data, 'd.yaml')
         self.assertEqual(call_args.epochs, 5)
@@ -159,7 +164,7 @@ class TestYoloV8ImageDetection(unittest.TestCase):
             with self.assertRaises(SystemExit) as cm:
                 # Capture stdout to check help message
                 with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-                    imagedetection.main()
+                     imagedetection.main()
         self.assertEqual(cm.exception.code, 1)
         self.assertIn("usage: imagedetection.py [-h] {detect,train} ...", mock_stdout.getvalue())
 
