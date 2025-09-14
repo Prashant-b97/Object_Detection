@@ -1,6 +1,7 @@
 from ultralytics import YOLO
 from typing import List, NamedTuple
 import numpy as np
+import cv2
 
 class BoundingBox(NamedTuple):
     """Represents a bounding box with coordinates."""
@@ -54,3 +55,23 @@ class ObjectDetector:
             detections.append(detection)
             
         return detections
+
+def draw_detections(image: np.ndarray, detections: List[Detection]) -> np.ndarray:
+    """
+    Draws detection bounding boxes and labels on an image.
+
+    Args:
+        image (np.ndarray): The image to draw on.
+        detections (List[Detection]): A list of detected objects.
+
+    Returns:
+        np.ndarray: The image with detections drawn on it.
+    """
+    output_image = image.copy()
+    for det in detections:
+        # Draw rectangle
+        cv2.rectangle(output_image, (det.box.x1, det.box.y1), (det.box.x2, det.box.y2), (36, 255, 12), 2)
+        # Prepare and draw label
+        label = f"{det.class_name}: {det.confidence:.2%}"
+        cv2.putText(output_image, label, (det.box.x1, det.box.y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (36, 255, 12), 2)
+    return output_image
