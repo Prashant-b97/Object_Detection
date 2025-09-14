@@ -36,7 +36,9 @@ The visualized skeleton uses color coding to distinguish different body parts:
     *   **Left Side:** Lines for the left arm and left leg (from the person's perspective).
     *   **Right Side:** Lines for the right arm and right leg (from the person's perspective).
 
-!Pose Estimation Demo
+![Pose Estimation Demo](assets/pose_estimation_demo.gif)
+
+---
 
 ## Features
 
