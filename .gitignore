@@ -10,3 +10,7 @@ __pycache__/
 *.mov
 *.avi
 *.gif
+
+# Ultralytics and model files
+runs/
+*.pt
