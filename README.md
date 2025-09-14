@@ -32,6 +32,17 @@ The script can process videos and live webcam feeds, applying object detection i
 
 ---
 
+## Project Architecture
+
+This project follows a clean, decoupled architecture that separates the core machine learning logic from the user-facing command-line applications.
+
+*   **Core Library (`detector/`):** A self-contained Python module that encapsulates all the logic for loading models, processing images, and running inference. It returns structured data (`Detection` objects) and has no knowledge of the command-line interface.
+*   **Application Layer (`imagedetection.py`, `videodetection.py`):** These scripts serve as the user interface. Their job is to parse command-line arguments, call the core library to perform the actual work, and present the results to the user (either by printing to the console or saving files).
+
+This design makes the project highly **reusable**, **testable**, and **scalable**.
+
+---
+
 ## Installation
 
 1.  **Clone the repository:**
