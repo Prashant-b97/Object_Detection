@@ -6,16 +6,18 @@ import os
 import datetime
 import argparse
 from tqdm import tqdm
+from ultralytics import YOLO
 
 # Import from our new core library
-from detector.core import ObjectDetector, draw_detections
+# NOTE: We will use the library's built-in plot() for flexibility with different model types.
+# from detector.core import ObjectDetector, draw_detections
 
-def process_video(detector: ObjectDetector, source: any, conf_threshold: float, output_path: str = None):
+def process_video(model: YOLO, source: any, conf_threshold: float, output_path: str = None):
     """
-    Processes a video source (file or webcam) for object detection.
+    Processes a video source (file or webcam) for object detection or pose estimation.
 
     Args:
-        detector (ObjectDetector): The detector instance.
+        model (YOLO): The YOLO model instance.
         source (int or str): The video source (0 for webcam, or path to video file).
         conf_threshold (float): The confidence threshold for detection (0-1).
         output_path (str, optional): Path to save the output video. Defaults to None.
@@ -74,9 +76,11 @@ def process_video(detector: ObjectDetector, source: any, conf_threshold: float, 
         if not success:
             break
 
-        # Perform detection and draw results using the core library
-        detections = detector.detect_from_image(frame, conf_threshold)
-        annotated_frame = draw_detections(frame, detections)
+        # Run YOLOv8 inference on the frame. The library handles both detection and pose.
+        results = model.predict(frame, conf=conf_threshold, verbose=False)
+
+        # Visualize the results on the frame using the library's built-in plotter.
+        annotated_frame = results[0].plot()
 
         # Write the frame to the output video if a writer is initialized
         if video_writer:
@@ -147,7 +151,7 @@ def main():
 
     # Load the YOLOv8 model
     try:
-        detector = ObjectDetector(args.model)
+        model = YOLO(args.model)
     except Exception as e:
         print(f"Error loading model: {e}")
         return
@@ -155,7 +159,7 @@ def main():
     # Convert confidence from 0-100 to 0-1
     confidence = args.probability / 100.0
 
-    process_video(detector, video_source, confidence, output_path=output_full_path)
+    process_video(model, video_source, confidence, output_path=output_full_path)
 
 if __name__ == "__main__":
     main()
