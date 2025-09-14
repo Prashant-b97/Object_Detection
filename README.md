@@ -21,6 +21,7 @@ Below is an example of running the detector on a sample image.
 - **Train**: Train a YOLOv8 model on a custom dataset in YOLO format.
 - **Detect**: Perform object detection on a single image using a pretrained or custom-trained model.
 - **Easy-to-use CLI**: Simple and clear commands for both training and detection.
+- **Detailed & Organized Output**: Detection results include class names, confidence scores, and precise bounding box coordinates. Each run is saved in a unique, timestamped folder for easy tracking.
 
 ---
 

@@ -6,26 +6,35 @@ import datetime
 import sys
 import argparse
 from ultralytics import YOLO
+from typing import List, Any
 
-def print_detections(results):
+def print_detections(results: List[Any]):
     """Prints a summary of the detection results."""
     # The results object contains lots of information. We'll just print a summary.
     # Assumes results are for a single image.
     result = results[0]
     print(f"\nOutput image saved in: {result.save_dir}")
     print(f"Total objects detected: {len(result.boxes)}")
-    print("\nDetected Objects:")
+    
     if not len(result.boxes):
-        print("- No objects detected.")
-        
+        print("\n- No objects detected.")
+        return
+
+    print("\n--- Detected Objects ---")
     names = result.names
     for box in result.boxes:
         class_id = int(box.cls[0])
         class_name = names[class_id]
         confidence = float(box.conf[0])
-        print(f"- {class_name} ({confidence:.2%})")
+        # Get bounding box coordinates in (top, left, bottom, right) format
+        coords = box.xyxy[0].tolist()
+        coords = [round(x) for x in coords]
+        print(f"- Class: {class_name} ({confidence:.2%})")
+        print(f"  - Bounding Box: [x1: {coords[0]}, y1: {coords[1]}, x2: {coords[2]}, y2: {coords[3]}]")
+    print("------------------------")
 
-def detect_objects(args):
+
+def detect_objects(args: argparse.Namespace):
     """Handles object detection using YOLOv8."""
     model_path = args.model
     input_image_path = args.input
@@ -34,22 +43,30 @@ def detect_objects(args):
         sys.stderr.write(f"Error: Input image not found at {input_image_path}\n")
         return
 
-    print("Loading YOLOv8 model and starting object detection...")
-    model = YOLO(model_path)
+    try:
+        print("Loading YOLOv8 model...")
+        model = YOLO(model_path)
 
-    # Run inference. The library handles drawing boxes and saving the image.
-    results = model.predict(
-        source=input_image_path,
-        save=True,
-        conf=args.probability / 100.0,  # Convert percentage to 0-1 scale
-        project=args.output_dir,
-        exist_ok=True  # Allow writing to an existing directory
-    )
+        print("Starting object detection...")
+        # Generate a unique name for the output directory using a timestamp
+        run_name = f"detect_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-    print_detections(results)
-    print("Detection complete.")
+        # Run inference. The library handles drawing boxes and saving the image.
+        results = model.predict(
+            source=input_image_path,
+            save=True,
+            conf=args.probability / 100.0,  # Convert percentage to 0-1 scale
+            project=args.output_dir,
+            name=run_name,
+            exist_ok=True  # Allow writing to an existing directory
+        )
+        print("Detection complete.")
+        print_detections(results)
+    except Exception as e:
+        sys.stderr.write(f"An error occurred during detection: {e}\n")
 
-def train_model(args):
+
+def train_model(args: argparse.Namespace):
     """Handles model training using YOLOv8."""
 
     print("Starting model training...")
@@ -57,14 +74,17 @@ def train_model(args):
     model = YOLO(args.pretrained_model)
 
     # Train the model
-    model.train(
-        data=args.data,
-        epochs=args.epochs,
-        batch=args.batch_size,
-        imgsz=640,  # Image size, a common default for YOLOv8
-        project="runs/train",
-        name=f"train_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    )
+    try:
+        model.train(
+            data=args.data,
+            epochs=args.epochs,
+            batch=args.batch_size,
+            imgsz=640,  # Image size, a common default for YOLOv8
+            project="runs/train",
+            name=f"train_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
+    except Exception as e:
+        sys.stderr.write(f"An error occurred during training: {e}\n")
     print("Training complete. The best model is saved in the 'runs/train/...' directory.")
 
 def main():
@@ -108,10 +128,11 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.command:
+    # If no command is provided, print help and exit.
+    if not hasattr(args, 'func'):
         parser.print_help()
         sys.exit(1)
-
+    
     args.func(args)
 
 if __name__ == "__main__":
