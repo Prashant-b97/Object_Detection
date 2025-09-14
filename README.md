@@ -1,6 +1,8 @@
 # ObjectDetection
 🚀 Train custom YOLOv8 models and detect objects with this powerful Python CLI. Features easy-to-use commands for both transfer learning and inference.
 
+[![Python Tests](https://github.com/Prashant-b97/Object_Detection/actions/workflows/python-tests.yml/badge.svg)](https://github.com/Prashant-b97/Object_Detection/actions/workflows/python-tests.yml)
+
 # YOLOv8 Object Detection and Training Tool
 
 This project provides a command-line tool for training custom YOLOv8 object detection models and running inference on images. It is built using the `ultralytics` Python library.
