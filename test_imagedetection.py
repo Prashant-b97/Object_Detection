@@ -5,36 +5,31 @@ import os
 import sys
 from io import StringIO
 
+# Import the new core components for mocking
+from detector.core import Detection, BoundingBox
+
 # We need to import the module to be tested
 import imagedetection
 
 class TestYoloV8ImageDetection(unittest.TestCase):
 
+    @patch('imagedetection.cv2.imread')
+    @patch('imagedetection.cv2.imwrite')
+    @patch('imagedetection.os.makedirs')
+    @patch('imagedetection.print_detections')
+    @patch('imagedetection.draw_detections')
     @patch('imagedetection.os.path.exists')
-    @patch('imagedetection.YOLO')
-    def test_detect_objects_success(self, mock_yolo, mock_exists):
+    @patch('imagedetection.ObjectDetector')
+    def test_detect_objects_success(self, mock_ObjectDetector, mock_exists, mock_draw_detections, mock_print_detections, mock_makedirs, mock_imwrite, mock_imread):
         """Test the detect_objects function for successful detection."""
         mock_exists.return_value = True
-        
-        # Mock the YOLO model and its predict method
+        # Mock the ObjectDetector and its return value
         mock_model_instance = MagicMock()
-        # Create a more realistic mock results object
-        mock_predict_result = MagicMock()
-        mock_predict_result.save_dir = '/fake/run/detect'
-        box1 = MagicMock()
-        box1.cls, box1.conf = [0], [0.95]
-        # Mock the tensor-like behavior of box.xyxy. It's a list-like object
-        # where the first element has a tolist() method.
-        box1.xyxy = [MagicMock()]
-        box1.xyxy[0].tolist.return_value = [10, 20, 30, 40]
-        box2 = MagicMock()
-        box2.cls, box2.conf = [1], [0.80]
-        box2.xyxy = [MagicMock()]
-        box2.xyxy[0].tolist.return_value = [50, 60, 70, 80]
-        mock_predict_result.boxes = [box1, box2]
-        mock_predict_result.names = {0: 'person', 1: 'car'}
-        mock_model_instance.predict.return_value = [mock_predict_result]
-        mock_yolo.return_value = mock_model_instance
+        mock_detections = [
+            Detection(class_name='person', confidence=0.95, box=BoundingBox(10, 20, 30, 40))
+        ]
+        mock_model_instance.detect_from_image.return_value = mock_detections
+        mock_ObjectDetector.return_value = mock_model_instance
 
         # Prepare arguments
         args = argparse.Namespace(
@@ -44,42 +39,27 @@ class TestYoloV8ImageDetection(unittest.TestCase):
             probability=25.0
         )
 
-        # Capture print output
-        captured_output = StringIO()
-        sys.stdout = captured_output
-
         # Run the function
         imagedetection.detect_objects(args)
 
-        # Restore stdout
-        sys.stdout = sys.__stdout__
-
         # Assertions
-        mock_yolo.assert_called_once_with('fake_model.pt')
-        mock_model_instance.predict.assert_called_once_with(
-            source='fake_image.jpg',
-            save=True,
-            conf=0.25,
-            project='runs/detect',
-            name=ANY,  # Check that a run name was provided
-            exist_ok=True
-        )
-        output = captured_output.getvalue()
-        self.assertIn("Loading YOLOv8 model...", output)
-        self.assertIn("Starting object detection...", output)
-        self.assertIn("Detection complete.", output)
-        self.assertIn("Output image saved in: /fake/run/detect", output)
-        self.assertIn("Total objects detected: 2", output)
-        self.assertIn("- Class: person (95.00%)", output)
-        self.assertIn("- Class: car (80.00%)", output)
-        self.assertIn("Bounding Box: [x1: 10, y1: 20, x2: 30, y2: 40]", output)
+        mock_ObjectDetector.assert_called_once_with('fake_model.pt')
+        mock_imread.assert_called_once_with('fake_image.jpg')
+        mock_model_instance.detect_from_image.assert_called_once_with(ANY, conf_threshold=0.25)
+        mock_draw_detections.assert_called_once()
+        mock_makedirs.assert_called_once()
+        mock_imwrite.assert_called_once()
+        mock_print_detections.assert_called_once()
 
     @patch('imagedetection.os.path.exists')
     def test_detect_objects_input_file_not_found(self, mock_exists):
         """Test detect_objects when the input file does not exist."""
-        mock_exists.side_effect = [False, True]  # Input image doesn't exist
+        mock_exists.return_value = False
 
-        args = argparse.Namespace(model='model.pt', input='image.jpg', output_dir='runs/detect', probability=25.0)
+        args = argparse.Namespace(
+            model='model.pt',
+            input='nonexistent.jpg'
+        )
 
         captured_stderr = StringIO()
         sys.stderr = captured_stderr
@@ -90,18 +70,15 @@ class TestYoloV8ImageDetection(unittest.TestCase):
 
     def test_print_detections_no_objects(self):
         """Test the print_detections function when no objects are found."""
-        mock_result = MagicMock()
-        mock_result.save_dir = '/fake/run/detect'
-        mock_result.boxes = []
-        mock_results_list = [mock_result]
+        detections = []
 
         captured_output = StringIO()
         sys.stdout = captured_output
-        imagedetection.print_detections(mock_results_list)
+        imagedetection.print_detections(detections, '/fake/dir')
         sys.stdout = sys.__stdout__
 
         output = captured_output.getvalue()
-        self.assertIn("Total objects detected: 0", output)
+        self.assertIn("Total objects detected: 0", output) # This check is now in print_detections
         self.assertIn("- No objects detected.", output)
 
     @patch('imagedetection.YOLO')
