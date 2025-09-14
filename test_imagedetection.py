@@ -23,10 +23,14 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         mock_predict_result.save_dir = '/fake/run/detect'
         box1 = MagicMock()
         box1.cls, box1.conf = [0], [0.95]
-        box1.xyxy = [[10, 20, 30, 40]]
+        # Mock the tensor-like behavior of box.xyxy. It's a list-like object
+        # where the first element has a tolist() method.
+        box1.xyxy = [MagicMock()]
+        box1.xyxy[0].tolist.return_value = [10, 20, 30, 40]
         box2 = MagicMock()
         box2.cls, box2.conf = [1], [0.80]
-        box2.xyxy = [[50, 60, 70, 80]]
+        box2.xyxy = [MagicMock()]
+        box2.xyxy[0].tolist.return_value = [50, 60, 70, 80]
         mock_predict_result.boxes = [box1, box2]
         mock_predict_result.names = {0: 'person', 1: 'car'}
         mock_model_instance.predict.return_value = [mock_predict_result]
