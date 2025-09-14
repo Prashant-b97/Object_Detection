@@ -1,22 +1,11 @@
-# Python
+# Python virtual environment
+venv/
+
+# Python cache
 __pycache__/
 *.pyc
 
-# Virtual Environment
-venv/
-.env
-
-# Ultralytics / Machine Learning
-runs/
-datasets/
-*.pt
-*.pth
-*.weights
-*.h5
-
-# OS generated files
-.DS_Store
-
-# Editor-specific files
-.vscode/
-.ipynb_checkpoints/
+# Media files - should not be committed to the repository
+*.mp4
+*.mov
+*.avi

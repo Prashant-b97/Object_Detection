@@ -160,6 +160,44 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         self.assertEqual(call_args.data, 'd.yaml')
         self.assertEqual(call_args.epochs, 5)
 
+    @patch('imagedetection.evaluate_model')
+    def test_main_evaluate_command(self, mock_evaluate):
+        """Test that main calls evaluate_model for the 'evaluate' command."""
+        test_args = ['imagedetection.py', 'evaluate', '--data', 'd.yaml', '--model', 'latest']
+        with patch.object(sys, 'argv', test_args):
+            imagedetection.main()
+        
+        mock_evaluate.assert_called_once()
+        call_args = mock_evaluate.call_args[0][0]
+        self.assertEqual(call_args.command, 'evaluate')
+        self.assertEqual(call_args.data, 'd.yaml')
+        self.assertEqual(call_args.model, 'latest')
+
+    @patch('imagedetection.os.path.isdir')
+    @patch('imagedetection.os.listdir')
+    @patch('imagedetection.os.path.exists')
+    @patch('imagedetection.YOLO')
+    def test_evaluate_model_latest(self, mock_yolo, mock_exists, mock_listdir, mock_isdir):
+        """Test evaluate_model with the 'latest' keyword."""
+        # --- Setup Mocks ---
+        mock_isdir.return_value = True
+        mock_listdir.return_value = ['train_20240101_000000', 'train_20240102_000000']
+        mock_exists.return_value = True # The best.pt file exists
+        
+        mock_model_instance = MagicMock()
+        mock_yolo.return_value = mock_model_instance
+
+        args = argparse.Namespace(data='coco8.yaml', model='latest')
+
+        # --- Run Function ---
+        imagedetection.evaluate_model(args)
+
+        # --- Assertions ---
+        # Check that it found the correct latest path
+        expected_path = os.path.join('runs', 'train', 'train_20240102_000000', 'weights', 'best.pt')
+        mock_yolo.assert_called_once_with(expected_path)
+        mock_model_instance.val.assert_called_once_with(data='coco8.yaml')
+
     def test_main_no_command(self):
         """Test that main prints help and exits when no command is given."""
         test_args = ['imagedetection.py']
@@ -170,7 +208,7 @@ class TestYoloV8ImageDetection(unittest.TestCase):
                 with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
                      imagedetection.main()
         self.assertEqual(cm.exception.code, 1)
-        self.assertIn("usage: imagedetection.py [-h] {detect,train} ...", mock_stdout.getvalue())
+        self.assertIn("usage: imagedetection.py [-h] {detect,train,evaluate} ...", mock_stdout.getvalue())
 
 if __name__ == "__main__":
     unittest.main()

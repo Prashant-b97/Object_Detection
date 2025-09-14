@@ -87,6 +87,47 @@ def train_model(args: argparse.Namespace):
         sys.stderr.write(f"An error occurred during training: {e}\n")
     print("Training complete. The best model is saved in the 'runs/train/...' directory.")
 
+def evaluate_model(args: argparse.Namespace):
+    """Handles model evaluation using YOLOv8 and prints performance metrics."""
+    model_path = args.model
+
+    if model_path == 'latest':
+        print("Finding the latest trained model...")
+        train_dir = 'runs/train'
+        if not os.path.isdir(train_dir):
+            sys.stderr.write(f"Error: Training directory '{train_dir}' not found. Please train a model first.\n")
+            return
+
+        all_runs = [d for d in os.listdir(train_dir) if os.path.isdir(os.path.join(train_dir, d)) and d.startswith('train')]
+        if not all_runs:
+            sys.stderr.write(f"Error: No training runs found in '{train_dir}'.\n")
+            return
+
+        latest_run = sorted(all_runs)[-1]
+        model_path = os.path.join(train_dir, latest_run, 'weights', 'best.pt')
+
+        if not os.path.exists(model_path):
+            sys.stderr.write(f"Error: 'best.pt' not found in the latest training run: {os.path.join(train_dir, latest_run)}\n")
+            return
+        
+        print(f"Found latest model: {model_path}")
+
+    print(f"Loading model for evaluation: {model_path}")
+    try:
+        model = YOLO(model_path)
+    except Exception as e:
+        sys.stderr.write(f"An error occurred while loading the model: {e}\n")
+        return
+
+    print(f"Starting evaluation on dataset specified in: {args.data}")
+    try:
+        # The val() method runs evaluation and prints a comprehensive table of metrics.
+        metrics = model.val(data=args.data)
+        print("Evaluation complete. See the metrics table above for performance details (mAP, Precision, Recall).")
+        # The metrics object itself contains detailed data if you want to process it further.
+    except Exception as e:
+        sys.stderr.write(f"An error occurred during evaluation: {e}\n")
+
 def main():
     parser = argparse.ArgumentParser(
         description="A tool for training and running YOLOv8 object detection models."
@@ -125,6 +166,16 @@ def main():
         "--batch-size", type=int, default=8, help="Training batch size. Adjust based on your GPU/CPU memory."
     )
     parser_train.set_defaults(func=train_model)
+
+    # --- Parser for the 'evaluate' command ---
+    parser_eval = subparsers.add_parser("evaluate", help="Evaluate a trained model's performance on a dataset.")
+    parser_eval.add_argument(
+        "--data", required=True, help="Path to the dataset YAML file (e.g., coco8.yaml)."
+    )
+    parser_eval.add_argument(
+        "-m", "--model", required=True, help="Path to the trained YOLO model file (.pt) to evaluate."
+    )
+    parser_eval.set_defaults(func=evaluate_model)
 
     args = parser.parse_args()
 

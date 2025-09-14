@@ -21,6 +21,8 @@ Below is an example of running the detector on a sample image.
 - **Train**: Train a YOLOv8 model on a custom dataset in YOLO format.
 - **Detect**: Perform object detection on a single image using a pretrained or custom-trained model.
 - **Easy-to-use CLI**: Simple and clear commands for both training and detection.
+- **Video & Webcam Support**: Perform real-time object detection on video files or a live webcam feed, with an option to save the output.
+- **Evaluate**: Measure model performance (mAP, Precision, Recall) on a validation dataset.
 - **Detailed & Organized Output**: Detection results include class names, confidence scores, and precise bounding box coordinates. Each run is saved in a unique, timestamped folder for easy tracking.
 
 ---
@@ -48,7 +50,9 @@ Below is an example of running the detector on a sample image.
 
 ## Usage
 
-The script has two main commands: `train` and `detect`.
+This project provides two main scripts: `imagedetection.py` and `videodetection.py`.
+
+> **Note:** The file paths used in the examples below (e.g., `path/to/your_dataset.yaml`) are placeholders. You must replace them with the actual paths to your files.
 
 ### Training a Custom Model
 
@@ -82,6 +86,46 @@ python imagedetection.py detect \
 
 The output image will be saved in the `runs/detect/predict/` directory.
 
+### Detecting Objects in Videos and Webcams
+
+A separate script, `videodetection.py`, handles video sources.
+
+**To run on a live webcam feed:**
+```bash
+python videodetection.py --model yolov8n.pt
+```
+
+**To process a video file and view the output:**
+```bash
+python videodetection.py --model yolov8n.pt --input path/to/your/video.mp4
+```
+
+**To save the processed video (Batch Mode):**
+Use the `--output` flag to specify a directory. The script will automatically process the entire video without a GUI and save it with a unique, timestamped name.
+```bash
+python videodetection.py --model yolov8n.pt --input path/to/your/video.mp4 --output runs/detect_video
+```
+
+### Evaluating a Model
+
+After training, you can quantitatively measure your model's performance.
+
+**To evaluate the most recently trained model (recommended):**
+Use the `latest` keyword to automatically find and use the best model from the last training run.
+
+```bash
+python imagedetection.py evaluate \
+    --data path/to/your_dataset.yaml \
+    --model latest
+```
+
+**To evaluate a specific model:**
+```bash
+python imagedetection.py evaluate \
+    --data path/to/your_dataset.yaml \
+    --model runs/train/your_experiment/weights/best.pt
+```
+
 ---
 
 ## Running Tests
@@ -89,7 +133,7 @@ The output image will be saved in the `runs/detect/predict/` directory.
 To ensure the script is working correctly, you can run the included unit tests:
 
 ```bash
-python -m unittest test_imagedetection.py
+python -m unittest discover
 ```
 
 ---
