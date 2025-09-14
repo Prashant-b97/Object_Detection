@@ -20,8 +20,23 @@ Below is an example of running the detector on a sample image.
 The script can process videos and live webcam feeds, applying object detection in real-time.
 ![Video Detection Demo](assets/video_detection_demo.gif)
 
-
 ---
+
+## Advanced Capabilities
+
+### Pose Estimation
+
+Beyond simple bounding boxes, the script can perform pose estimation to detect the keypoints (joints) of a person's skeleton. This is achieved by using a model specifically trained for this task, such as `yolov8n-pose.pt`.
+
+**Understanding the Output:**
+The visualized skeleton uses color coding to distinguish different body parts:
+*   **Keypoints (Joints):** Each dot represents a specific joint like the nose, shoulders, elbows, wrists, hips, knees, and ankles.
+*   **Limbs (Bones):** The lines connecting the joints are color-coded for easy identification:
+    *   **Torso:** Lines connecting the shoulders and hips.
+    *   **Left Side:** Lines for the left arm and left leg (from the person's perspective).
+    *   **Right Side:** Lines for the right arm and right leg (from the person's perspective).
+
+!Pose Estimation Demo
 
 ## Features
 
