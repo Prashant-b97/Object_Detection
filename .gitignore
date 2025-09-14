@@ -9,6 +9,9 @@ __pycache__/
 *.mp4
 *.mov
 *.avi
+
+# macOS
+.DS_Store
 *.gif
 
 # Ultralytics and model files
