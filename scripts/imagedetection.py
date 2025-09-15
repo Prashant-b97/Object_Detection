@@ -11,7 +11,7 @@ from ultralytics import YOLO
 from typing import List
 
 # Import from our new core library
-from detector.core import ObjectDetector, Detection, draw_detections
+from object_detector.core import ObjectDetector, Detection, draw_detections
 
 def print_detections(detections: List[Detection], output_dir: str):
     """Prints a summary of the detection results."""
@@ -141,7 +141,7 @@ def main():
     # --- Parser for the 'detect' command ---
     parser_detect = subparsers.add_parser("detect", help="Detect objects in an image with a trained YOLO model.")
     parser_detect.add_argument(
-        "-i", "--input", default="sample_input/image.jpg", help="Path to the input image file."
+        "-i", "--input", default="sample_data/image.jpg", help="Path to the input image file."
     )
     parser_detect.add_argument(
         "-m", "--model", required=True, help="Path to the trained YOLO model file (.pt)."

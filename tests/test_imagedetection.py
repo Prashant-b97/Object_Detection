@@ -6,7 +6,7 @@ import sys
 from io import StringIO
 
 # Import the new core components for mocking
-from detector.core import Detection, BoundingBox
+from object_detector.core import Detection, BoundingBox
 
 # We need to import the module to be tested
 import imagedetection

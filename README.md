@@ -12,9 +12,9 @@
 
 Below is an example of running the detector on a sample image.
 | Input Image |
-![alt text](<Street Scene.png>)
+![alt text](sample_data/Street%20Scene.png)
 | Output Image |
-![alt text](<Street Scene.jpg>)
+![alt text](sample_data/Street%20Scene.jpg)
 
 ### Video Detection in Action
 
@@ -108,7 +108,7 @@ The best trained model will be saved in the `runs/train/.../weights/` directory 
 **Example using a pretrained model:**
 *(The script will auto-download standard models like `yolov8n.pt` if not found locally.)*
 ```bash
-python imagedetection.py detect \
+python scripts/imagedetection.py detect \
     --input "path/to/your/image.jpg" \
     --model yolov8n.pt
 ```
