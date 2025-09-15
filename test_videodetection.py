@@ -63,6 +63,9 @@ class TestVideoDetection(unittest.TestCase):
         # Simulate pressing 'q' on the second frame check
         mock_waitkey.side_effect = [-1, ord('q')]
 
+        # --- Run Function ---
+        videodetection.process_video(mock_yolo_model, 0, 0.5) # Use webcam source '0' for interactive mode
+
         # --- Assertions ---
         self.assertEqual(mock_cap.read.call_count, 2, "Should read two frames before quitting")
         self.assertEqual(mock_yolo_model.predict.call_count, 2, "Should predict on two frames")

@@ -12,7 +12,9 @@ __pycache__/
 
 # macOS
 .DS_Store
-*.gif
+
+*.gif # Ignore all GIFs...
+!assets/*.gif # ...except for demo GIFs in the assets folder.
 
 # Ultralytics and model files
 runs/
