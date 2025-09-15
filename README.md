@@ -84,6 +84,16 @@ This design makes the project highly **reusable**, **testable**, and **scalable*
 
 ---
 
+## Getting Sample Data
+
+The project does not include large media files. To download a sample video for testing, you can run the provided utility script:
+
+```bash
+python utils/download_video.py
+```
+
+This downloads a sample MP4 into the `sample_data/` directory (tries Ultralytics first, then a public mirror if unavailable).
+
 ## Usage
 
 This project provides two main scripts: `imagedetection.py` and `videodetection.py`.
@@ -95,7 +105,7 @@ This project provides two main scripts: `imagedetection.py` and `videodetection.
 To train a model, you need a dataset YAML file (like `coco8.yaml`).
  
 ```bash
-python imagedetection.py train \
+python scripts/imagedetection.py train \
     --data path/to/your_dataset.yaml \
     --epochs 50 \
     --batch-size 8
@@ -115,7 +125,7 @@ python scripts/imagedetection.py detect \
 
 **Example using your custom-trained model:**
 ```bash
-python imagedetection.py detect \
+python scripts/imagedetection.py detect \
     --input sample_input/image.jpg \
     --model runs/train/your_experiment/weights/best.pt
 ```
@@ -128,7 +138,7 @@ A separate script, `videodetection.py`, handles video sources.
 
 **To run on a live webcam feed:**
 ```bash
-python videodetection.py --model yolov8n.pt
+python -m scripts.videodetection --model yolov8n.pt
 ```
 
 **To process a video file and view the output:**

@@ -7,14 +7,24 @@ import sys
 import logging
 import datetime
 import argparse
+import numpy as np
 from tqdm import tqdm
 from ultralytics import YOLO
+from deep_sort_realtime.deepsort_tracker import DeepSort
 
 # Import from our new core library
 # NOTE: We will use the library's built-in plot() for flexibility with different model types.
 # from detector.core import ObjectDetector, draw_detections
 
-def process_video(model: YOLO, source: any, conf_threshold: float, output_path: str = None):
+def process_video(
+    model: YOLO,
+    source: any,
+    conf_threshold: float,
+    output_path: str = None,
+    enable_tracking: bool = False,
+    max_frames: int = 0,
+    frame_skip: int = 0,
+):
     """
     Processes a video source (file or webcam) for object detection or pose estimation.
 
@@ -23,10 +33,25 @@ def process_video(model: YOLO, source: any, conf_threshold: float, output_path: 
         source (int or str): The video source (0 for webcam, or path to video file).
         conf_threshold (float): The confidence threshold for detection (0-1).
         output_path (str, optional): Path to save the output video. Defaults to None.
+        enable_tracking (bool, optional): Whether to enable DeepSORT object tracking. Defaults to False.
+        max_frames (int, optional): Maximum frames to process. 0 means no limit.
+        frame_skip (int, optional): Number of frames to skip between processed frames.
     """
+    # First, check if the video source is a file and if it exists.
+    # This provides a more specific error than OpenCV's generic one.
+    if isinstance(source, str):
+        if not os.path.exists(source):
+            logging.error(f"Input video file not found at: '{source}'")
+            return
+        # Add a file size check to catch invalid downloads.
+        # A valid video file will be larger than a few kilobytes.
+        if os.path.getsize(source) < 1024: # 1 KB
+            logging.error(f"Input video file at '{source}' is too small to be a valid video. Please check the download.")
+            return
+
     cap = cv2.VideoCapture(source)
     if not cap.isOpened():
-        logging.error(f"Could not open video source '{source}'")
+        logging.error(f"Could not open video source '{source}'. It may be an invalid file or a device that is not available.")
         return
     
     # Determine if we are in interactive mode or batch processing mode
@@ -71,26 +96,84 @@ def process_video(model: YOLO, source: any, conf_threshold: float, output_path: 
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         pbar = tqdm(total=total_frames, desc="Processing video frames")
 
+    # Initialize the DeepSORT tracker if enabled
+    tracker = None
+    if enable_tracking:
+        tracker = DeepSort(max_age=30)
+        logging.info("DeepSORT tracking enabled.")
+        # For drawing unique colors per track
+        track_colors = {}
+
+    frame_idx = -1
+    processed_frame_count = 0
+
     while cap.isOpened():
         # Read a frame from the video
         success, frame = cap.read()
+        frame_idx += 1
 
         if not success:
             break
 
+        # Update progress for batch mode for every frame read
+        if pbar:
+            pbar.update(1)
+
+        # Frame skipping: process only every (frame_skip + 1)th frame
+        if frame_skip > 0 and (frame_idx % (frame_skip + 1) != 0):
+            continue
+
+        # Stop when reaching max_frames processed frames
+        if max_frames > 0 and processed_frame_count >= max_frames:
+            logging.info(f"Reached max-frames limit of {max_frames}. Stopping processing.")
+            break
+
+        processed_frame_count += 1
+
         # Run YOLOv8 inference on the frame. The library handles both detection and pose.
         results = model.predict(frame, conf=conf_threshold, verbose=False)
 
-        # Visualize the results on the frame using the library's built-in plotter.
-        annotated_frame = results[0].plot()
+        if enable_tracking and tracker is not None:
+            # Prepare detections for the tracker
+            detections_for_tracker = []
+            for box in results[0].boxes.data:
+                # box format is [x1, y1, x2, y2, conf, cls]
+                x1, y1, x2, y2, conf, cls = box.tolist()
+                # DeepSORT expects [x, y, w, h]
+                w, h = x2 - x1, y2 - y1
+                # We also need the class name for potential filtering, though not used here
+                class_name = model.names[int(cls)]
+                
+                # For now, we track all detected objects.
+                # You could filter by class_name here if needed.
+                detections_for_tracker.append(([x1, y1, w, h], conf, class_name))
+
+            # Update the tracker with the new detections
+            tracks = tracker.update_tracks(detections_for_tracker, frame=frame)
+
+            # Draw the tracks on the frame
+            annotated_frame = frame.copy()
+            for track in tracks:
+                if not track.is_confirmed():
+                    continue
+                track_id = track.track_id
+                ltrb = track.to_ltrb() # Bbox in [x1, y1, x2, y2] format
+                x1, y1, x2, y2 = int(ltrb[0]), int(ltrb[1]), int(ltrb[2]), int(ltrb[3])
+
+                # Assign a unique color to each track ID
+                if track_id not in track_colors:
+                    track_colors[track_id] = (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))
+                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), track_colors[track_id], 2)
+                cv2.putText(annotated_frame, f"ID: {track_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, track_colors[track_id], 2)
+        else:
+            # Visualize the results on the frame using the library's built-in plotter.
+            annotated_frame = results[0].plot()
 
         # Write the frame to the output video if a writer is initialized
         if video_writer:
             video_writer.write(annotated_frame)
 
-        if is_batch_mode:
-            pbar.update(1)
-        else:
+        if not is_batch_mode:
             # Display the annotated frame
             cv2.imshow("YOLOv8 Inference", annotated_frame)
 
@@ -125,6 +208,17 @@ def main():
     )
     parser.add_argument(
         "-o", "--output", help="Directory to save the output video. If provided, a timestamped video will be saved."
+    )
+    parser.add_argument(
+        '--enable-tracking', action='store_true', help="Enable object tracking with DeepSORT."
+    )
+    parser.add_argument(
+        '--max-frames', type=int, default=0,
+        help="Maximum number of frames to process. 0 for unlimited."
+    )
+    parser.add_argument(
+        '--frame-skip', type=int, default=0,
+        help="Number of frames to skip between processed frames (e.g., 1 means process every 2nd frame)."
     )
     args = parser.parse_args()
 
@@ -162,7 +256,15 @@ def main():
     # Convert confidence from 0-100 to 0-1
     confidence = args.probability / 100.0
 
-    process_video(model, video_source, confidence, output_path=output_full_path)
+    process_video(
+        model,
+        video_source,
+        confidence,
+        output_path=output_full_path,
+        enable_tracking=args.enable_tracking,
+        max_frames=args.max_frames,
+        frame_skip=args.frame_skip,
+    )
 
 def setup_logging():
     """Configures the logging for the application."""

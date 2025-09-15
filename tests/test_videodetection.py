@@ -13,11 +13,13 @@ from scripts import videodetection
 
 class TestVideoDetection(unittest.TestCase):
 
+    @patch('scripts.videodetection.os.path.getsize', return_value=2048)
+    @patch('scripts.videodetection.os.path.exists', return_value=True)
     @patch('scripts.videodetection.cv2.destroyAllWindows')
     @patch('scripts.videodetection.cv2.waitKey')
     @patch('scripts.videodetection.cv2.imshow')
     @patch('scripts.videodetection.cv2.VideoCapture')
-    def test_process_video_success_and_end_of_stream(self, mock_videocapture, mock_imshow, mock_waitkey, mock_destroy):
+    def test_process_video_success_and_end_of_stream(self, mock_videocapture, mock_imshow, mock_waitkey, mock_destroy, *_):
         """Test successful video processing until the stream ends."""
         # --- Setup Mocks ---
         # Mock VideoCapture
@@ -76,9 +78,11 @@ class TestVideoDetection(unittest.TestCase):
         mock_cap.release.assert_called_once()
         mock_destroy.assert_called_once()
 
+    @patch('scripts.videodetection.os.path.getsize', return_value=2048)
+    @patch('scripts.videodetection.os.path.exists', return_value=True)
     @patch('scripts.videodetection.logging.error')
     @patch('scripts.videodetection.cv2.VideoCapture')
-    def test_process_video_source_not_opened(self, mock_videocapture, mock_log_error):
+    def test_process_video_source_not_opened(self, mock_videocapture, mock_log_error, *_):
         """Test the case where the video source cannot be opened."""
         mock_cap = MagicMock()
         mock_cap.isOpened.return_value = False
@@ -86,7 +90,7 @@ class TestVideoDetection(unittest.TestCase):
 
         videodetection.process_video(MagicMock(), 'nonexistent.mp4', 0.5)
 
-        mock_log_error.assert_called_with("Could not open video source 'nonexistent.mp4'")
+        mock_log_error.assert_called_with("Could not open video source 'nonexistent.mp4'. It may be an invalid file or a device that is not available.")
         mock_cap.release.assert_not_called()
 
     @patch('scripts.videodetection.process_video')
@@ -101,7 +105,8 @@ class TestVideoDetection(unittest.TestCase):
             videodetection.main()
 
         mock_YOLO.assert_called_once_with('m.pt')
-        mock_process_video.assert_called_once_with(mock_model_instance, 0, 0.25, output_path=ANY)
+        # output_path is None when --output is not provided; ANY matches None
+        mock_process_video.assert_called_once_with(mock_model_instance, 0, 0.25, output_path=ANY, enable_tracking=False, max_frames=0, frame_skip=0)
 
     @patch('scripts.videodetection.os.path.join')
     @patch('scripts.videodetection.os.path.splitext')
@@ -121,13 +126,15 @@ class TestVideoDetection(unittest.TestCase):
             videodetection.main()
 
         mock_YOLO.assert_called_once_with('m.pt')
-        mock_process_video.assert_called_once_with(mock_model_instance, 'video.mp4', 0.5, output_path='output/video_timestamp.mp4')
+        mock_process_video.assert_called_once_with(mock_model_instance, 'video.mp4', 0.5, output_path='output/video_timestamp.mp4', enable_tracking=False, max_frames=0, frame_skip=0)
 
+    @patch('scripts.videodetection.os.path.getsize', return_value=2048)
+    @patch('scripts.videodetection.os.path.exists', return_value=True)
     @patch('scripts.videodetection.tqdm')
     @patch('scripts.videodetection.cv2.VideoWriter')
     @patch('scripts.videodetection.cv2.VideoCapture')
     @patch('scripts.videodetection.os.makedirs')
-    def test_process_video_batch_mode(self, mock_makedirs, mock_videocapture, mock_writer, mock_tqdm):
+    def test_process_video_batch_mode(self, mock_makedirs, mock_videocapture, mock_writer, mock_tqdm, *_):
         """Test video processing in non-interactive batch mode."""
         # --- Setup Mocks ---
         mock_cap = MagicMock()
