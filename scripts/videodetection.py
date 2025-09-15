@@ -164,8 +164,12 @@ def main():
 
     process_video(model, video_source, confidence, output_path=output_full_path)
 
-if __name__ == "__main__":
-    # --- Setup Logging ---
+def setup_logging():
+    """Configures the logging for the application."""
+    # Check if handlers are already configured to prevent re-configuration.
+    if logging.getLogger().hasHandlers():
+        return
+
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d')}.log")
@@ -175,8 +179,10 @@ if __name__ == "__main__":
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
             logging.FileHandler(log_file),
-            logging.StreamHandler(sys.stdout) # Also print to console
+            logging.StreamHandler(sys.stdout)
         ]
     )
 
+if __name__ == "__main__":
+    setup_logging()
     main()

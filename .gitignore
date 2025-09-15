@@ -19,3 +19,6 @@ __pycache__/
 # Ultralytics and model files
 runs/
 *.pt
+
+# Log files
+logs/

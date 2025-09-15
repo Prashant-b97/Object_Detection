@@ -1,18 +1,22 @@
 import unittest
 from unittest.mock import patch, MagicMock, ANY
+import os
 import sys
 from io import StringIO
 import numpy as np
 
+# Add project root to the Python path to allow imports from scripts
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 # We need to import the module to be tested
-import videodetection
+from scripts import videodetection
 
 class TestVideoDetection(unittest.TestCase):
 
-    @patch('videodetection.cv2.destroyAllWindows')
-    @patch('videodetection.cv2.waitKey')
-    @patch('videodetection.cv2.imshow')
-    @patch('videodetection.cv2.VideoCapture')
+    @patch('scripts.videodetection.cv2.destroyAllWindows')
+    @patch('scripts.videodetection.cv2.waitKey')
+    @patch('scripts.videodetection.cv2.imshow')
+    @patch('scripts.videodetection.cv2.VideoCapture')
     def test_process_video_success_and_end_of_stream(self, mock_videocapture, mock_imshow, mock_waitkey, mock_destroy):
         """Test successful video processing until the stream ends."""
         # --- Setup Mocks ---
@@ -44,10 +48,10 @@ class TestVideoDetection(unittest.TestCase):
         mock_cap.release.assert_called_once()
         mock_destroy.assert_called_once()
 
-    @patch('videodetection.cv2.destroyAllWindows')
-    @patch('videodetection.cv2.waitKey')
-    @patch('videodetection.cv2.imshow')
-    @patch('videodetection.cv2.VideoCapture')
+    @patch('scripts.videodetection.cv2.destroyAllWindows')
+    @patch('scripts.videodetection.cv2.waitKey')
+    @patch('scripts.videodetection.cv2.imshow')
+    @patch('scripts.videodetection.cv2.VideoCapture')
     def test_process_video_quit_with_q(self, mock_videocapture, mock_imshow, mock_waitkey, mock_destroy):
         """Test video processing and quitting with the 'q' key."""
         # --- Setup Mocks ---
@@ -72,8 +76,8 @@ class TestVideoDetection(unittest.TestCase):
         mock_cap.release.assert_called_once()
         mock_destroy.assert_called_once()
 
-    @patch('videodetection.logging.error')
-    @patch('videodetection.cv2.VideoCapture')
+    @patch('scripts.videodetection.logging.error')
+    @patch('scripts.videodetection.cv2.VideoCapture')
     def test_process_video_source_not_opened(self, mock_videocapture, mock_log_error):
         """Test the case where the video source cannot be opened."""
         mock_cap = MagicMock()
@@ -85,25 +89,25 @@ class TestVideoDetection(unittest.TestCase):
         mock_log_error.assert_called_with("Could not open video source 'nonexistent.mp4'")
         mock_cap.release.assert_not_called()
 
-    @patch('videodetection.process_video')
-    @patch('videodetection.YOLO')
+    @patch('scripts.videodetection.process_video')
+    @patch('scripts.videodetection.YOLO')
     def test_main_webcam_input(self, mock_YOLO, mock_process_video):
         """Test main function with default webcam input."""
         mock_model_instance = MagicMock()
         mock_YOLO.return_value = mock_model_instance
         
-        test_args = ['videodetection.py', '--model', 'm.pt']
+        test_args = ['scripts/videodetection.py', '--model', 'm.pt']
         with patch.object(sys, 'argv', test_args):
             videodetection.main()
 
         mock_YOLO.assert_called_once_with('m.pt')
         mock_process_video.assert_called_once_with(mock_model_instance, 0, 0.25, output_path=ANY)
 
-    @patch('videodetection.os.path.join')
-    @patch('videodetection.os.path.splitext')
-    @patch('videodetection.os.path.basename')
-    @patch('videodetection.process_video')
-    @patch('videodetection.YOLO')
+    @patch('scripts.videodetection.os.path.join')
+    @patch('scripts.videodetection.os.path.splitext')
+    @patch('scripts.videodetection.os.path.basename')
+    @patch('scripts.videodetection.process_video')
+    @patch('scripts.videodetection.YOLO')
     def test_main_video_file_input_with_output(self, mock_YOLO, mock_process_video, mock_basename, mock_splitext, mock_join):
         """Test main function with a video file path and output directory."""
         mock_model_instance = MagicMock()
@@ -112,17 +116,17 @@ class TestVideoDetection(unittest.TestCase):
         mock_splitext.return_value = ('video', '.mp4')
         mock_join.return_value = 'output/video_timestamp.mp4'
 
-        test_args = ['videodetection.py', '--model', 'm.pt', '--input', 'video.mp4', '-p', '50', '-o', 'output']
+        test_args = ['scripts/videodetection.py', '--model', 'm.pt', '--input', 'video.mp4', '-p', '50', '-o', 'output']
         with patch.object(sys, 'argv', test_args):
             videodetection.main()
 
         mock_YOLO.assert_called_once_with('m.pt')
         mock_process_video.assert_called_once_with(mock_model_instance, 'video.mp4', 0.5, output_path='output/video_timestamp.mp4')
 
-    @patch('videodetection.tqdm')
-    @patch('videodetection.cv2.VideoWriter')
-    @patch('videodetection.cv2.VideoCapture')
-    @patch('videodetection.os.makedirs')
+    @patch('scripts.videodetection.tqdm')
+    @patch('scripts.videodetection.cv2.VideoWriter')
+    @patch('scripts.videodetection.cv2.VideoCapture')
+    @patch('scripts.videodetection.os.makedirs')
     def test_process_video_batch_mode(self, mock_makedirs, mock_videocapture, mock_writer, mock_tqdm):
         """Test video processing in non-interactive batch mode."""
         # --- Setup Mocks ---

@@ -188,7 +188,15 @@ def main():
         parser.print_help()
         sys.exit(1)
     
-    # --- Setup Logging ---
+    args.func(args)
+
+def setup_logging():
+    """Configures the logging for the application."""
+    # Check if handlers are already configured to prevent re-configuration,
+    # which can happen when tests import the module.
+    if logging.getLogger().hasHandlers():
+        return
+
     log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d')}.log")
@@ -198,11 +206,10 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
             logging.FileHandler(log_file),
-            logging.StreamHandler(sys.stdout) # Also print to console
+            logging.StreamHandler(sys.stdout)
         ]
     )
 
-    args.func(args)
-
 if __name__ == "__main__":
+    setup_logging()
     main()
