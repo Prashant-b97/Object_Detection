@@ -66,7 +66,6 @@ def download_file(
                 print("ERROR: Download incomplete (size mismatch).")
                 return False
 
-        print(f"Successfully downloaded to: {local_filename}")
         # --- Post-download validation ---
         print("Validating downloaded file as a video...")
         cap = None
@@ -80,16 +79,14 @@ def download_file(
             print("Validation successful.")
         except Exception as e:
             print(f"ERROR: Downloaded file is not a valid video. {e}")
-            try:
-                os.remove(local_filename)
-                print(f"Removed invalid file: {local_filename}")
-            except OSError:
-                pass
+            os.remove(local_filename)
+            print(f"Removed invalid file: {local_filename}")
             return False
         finally:
             if cap:
                 cap.release()
 
+        print(f"Successfully downloaded to: {local_filename}")
         return True
     except requests.exceptions.RequestException as e:
         print(f"An error occurred during download: {e}")

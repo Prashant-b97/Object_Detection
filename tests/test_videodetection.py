@@ -105,7 +105,6 @@ class TestVideoDetection(unittest.TestCase):
             videodetection.main()
 
         mock_YOLO.assert_called_once_with('m.pt')
-        # output_path is None when --output is not provided; ANY matches None
         mock_process_video.assert_called_once_with(mock_model_instance, 0, 0.25, output_path=ANY, enable_tracking=False, max_frames=0, frame_skip=0)
 
     @patch('scripts.videodetection.os.path.join')
