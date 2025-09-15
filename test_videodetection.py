@@ -72,21 +72,17 @@ class TestVideoDetection(unittest.TestCase):
         mock_cap.release.assert_called_once()
         mock_destroy.assert_called_once()
 
+    @patch('videodetection.logging.error')
     @patch('videodetection.cv2.VideoCapture')
-    def test_process_video_source_not_opened(self, mock_videocapture):
+    def test_process_video_source_not_opened(self, mock_videocapture, mock_log_error):
         """Test the case where the video source cannot be opened."""
         mock_cap = MagicMock()
         mock_cap.isOpened.return_value = False
         mock_videocapture.return_value = mock_cap
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
-
         videodetection.process_video(MagicMock(), 'nonexistent.mp4', 0.5)
 
-        sys.stdout = sys.__stdout__
-
-        self.assertIn("Error: Could not open video source", captured_output.getvalue())
+        mock_log_error.assert_called_with("Could not open video source 'nonexistent.mp4'")
         mock_cap.release.assert_not_called()
 
     @patch('videodetection.process_video')

@@ -3,6 +3,8 @@
 
 import cv2
 import os
+import sys
+import logging
 import datetime
 import argparse
 from tqdm import tqdm
@@ -24,7 +26,7 @@ def process_video(model: YOLO, source: any, conf_threshold: float, output_path: 
     """
     cap = cv2.VideoCapture(source)
     if not cap.isOpened():
-        print(f"Error: Could not open video source '{source}'")
+        logging.error(f"Could not open video source '{source}'")
         return
     
     # Determine if we are in interactive mode or batch processing mode
@@ -33,9 +35,9 @@ def process_video(model: YOLO, source: any, conf_threshold: float, output_path: 
     is_batch_mode = not is_webcam and output_path is not None
 
     if is_batch_mode:
-        print("Running in batch mode (processing file without display)...")
+        logging.info("Running in batch mode (processing file without display)...")
     else:
-        print("Starting video processing... Press 'q' to quit.")
+        logging.info("Starting video processing... Press 'q' to quit.")
 
     # Get video properties for the writer
     video_writer = None
@@ -44,7 +46,7 @@ def process_video(model: YOLO, source: any, conf_threshold: float, output_path: 
         output_dir = os.path.dirname(output_path)
         if output_dir:
             os.makedirs(output_dir, exist_ok=True)
-        print(f"Attempting to save output video to: {output_path}")
+        logging.info(f"Attempting to save output video to: {output_path}")
 
         frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -59,7 +61,7 @@ def process_video(model: YOLO, source: any, conf_threshold: float, output_path: 
         video_writer = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
 
         if not video_writer.isOpened():
-            print(f"Error: Could not open video writer for path: {output_path}")
+            logging.error(f"Could not open video writer for path: {output_path}")
             # We'll continue with displaying the video, but saving will be disabled.
             video_writer = None
 
@@ -98,15 +100,15 @@ def process_video(model: YOLO, source: any, conf_threshold: float, output_path: 
     
     if pbar:
         pbar.close()
-        print("Batch processing complete.")
+        logging.info("Batch processing complete.")
         
     # Release the video capture object and close the display window
     cap.release()
     if video_writer:
         video_writer.release()
-        print(f"Output video saved to: {output_path}")
+        logging.info(f"Output video saved to: {output_path}")
     cv2.destroyAllWindows()
-    print("Video processing finished.")
+    logging.info("Video processing finished.")
 
 def main():
     parser = argparse.ArgumentParser(description="Run YOLOv8 object detection on a video or webcam.")
@@ -129,9 +131,9 @@ def main():
     # Convert source to integer if it's the webcam
     video_source = 0 if args.input == '0' else args.input
     if video_source != 0:
-        print(f"Input source: {video_source}")
+        logging.info(f"Input source: {video_source}")
     else:
-        print("Input source: Webcam")
+        logging.info("Input source: Webcam")
 
     # Generate a unique output path if an output directory is provided
     output_full_path = None
@@ -150,10 +152,11 @@ def main():
         output_full_path = os.path.join(output_dir, output_filename)
 
     # Load the YOLOv8 model
+    logging.info(f"Loading model: {args.model}")
     try:
         model = YOLO(args.model)
     except Exception as e:
-        print(f"Error loading model: {e}")
+        logging.error(f"Error loading model: {e}", exc_info=True)
         return
 
     # Convert confidence from 0-100 to 0-1
@@ -162,4 +165,18 @@ def main():
     process_video(model, video_source, confidence, output_path=output_full_path)
 
 if __name__ == "__main__":
+    # --- Setup Logging ---
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    log_file = os.path.join(log_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d')}.log")
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler(sys.stdout) # Also print to console
+        ]
+    )
+
     main()

@@ -51,38 +51,39 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         mock_imwrite.assert_called_once()
         mock_print_detections.assert_called_once()
 
+    @patch('imagedetection.logging.error')
     @patch('imagedetection.os.path.exists')
-    def test_detect_objects_input_file_not_found(self, mock_exists):
+    def test_detect_objects_input_file_not_found(self, mock_exists, mock_log_error):
         """Test detect_objects when the input file does not exist."""
         mock_exists.return_value = False
 
         args = argparse.Namespace(
             model='model.pt',
-            input='nonexistent.jpg'
+            input='nonexistent.jpg',
+            # Add other necessary args for the function to run
+            output_dir='runs/detect',
+            probability=25.0
         )
 
-        captured_stderr = StringIO()
-        sys.stderr = captured_stderr
         imagedetection.detect_objects(args)
-        sys.stderr = sys.__stderr__
 
-        self.assertIn("Error: Input image not found", captured_stderr.getvalue())
+        mock_log_error.assert_called_with("Input image not found at nonexistent.jpg")
 
-    def test_print_detections_no_objects(self):
+    @patch('imagedetection.logging.info')
+    def test_print_detections_no_objects(self, mock_log_info):
         """Test the print_detections function when no objects are found."""
         detections = []
-
-        captured_output = StringIO()
-        sys.stdout = captured_output
         imagedetection.print_detections(detections, '/fake/dir')
-        sys.stdout = sys.__stdout__
 
-        output = captured_output.getvalue()
-        self.assertIn("Total objects detected: 0", output) # This check is now in print_detections
-        self.assertIn("- No objects detected.", output)
+        # Check that the relevant logging calls were made
+        calls = mock_log_info.call_args_list
+        self.assertIn(call('Output image saved in: /fake/dir'), calls)
+        self.assertIn(call('Total objects detected: 0'), calls)
+        self.assertIn(call('- No objects detected.'), calls)
 
+    @patch('imagedetection.logging.info')
     @patch('imagedetection.YOLO')
-    def test_train_model_success(self, mock_yolo):
+    def test_train_model_success(self, mock_yolo, mock_log_info):
         """Test the train_model function."""
         mock_model_instance = MagicMock()
         mock_yolo.return_value = mock_model_instance
@@ -94,10 +95,7 @@ class TestYoloV8ImageDetection(unittest.TestCase):
             batch_size=8
         )
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
         imagedetection.train_model(args)
-        sys.stdout = sys.__stdout__
 
         mock_yolo.assert_called_once_with('yolov8n.pt')
         mock_model_instance.train.assert_called_once_with(
@@ -108,8 +106,8 @@ class TestYoloV8ImageDetection(unittest.TestCase):
             project='runs/train',
             name=ANY  # The name includes a timestamp, so we use ANY
         )
-        self.assertIn("Starting model training...", captured_output.getvalue())
-        self.assertIn("Training complete.", captured_output.getvalue())
+        mock_log_info.assert_any_call("Starting model training...")
+        mock_log_info.assert_any_call("Training complete. The best model is saved in the 'runs/train/...' directory.")
 
     @patch('imagedetection.detect_objects')
     def test_main_detect_command(self, mock_detect_objects):

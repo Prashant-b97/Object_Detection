@@ -3,6 +3,7 @@
 
 import os
 import datetime
+import logging
 import sys
 import argparse
 import cv2
@@ -14,18 +15,19 @@ from detector.core import ObjectDetector, Detection, draw_detections
 
 def print_detections(detections: List[Detection], output_dir: str):
     """Prints a summary of the detection results."""
-    print(f"\nOutput image saved in: {output_dir}")
-    print(f"Total objects detected: {len(detections)}")
+    logging.info(f"Output image saved in: {output_dir}")
+    logging.info(f"Total objects detected: {len(detections)}")
     
     if not detections:
-        print("\n- No objects detected.")
+        logging.info("- No objects detected.")
         return
 
-    print("\n--- Detected Objects ---")
+    detection_summary = ["--- Detected Objects ---"]
     for det in detections:
-        print(f"- Class: {det.class_name} ({det.confidence:.2%})")
-        print(f"  - Bounding Box: [x1: {det.box.x1}, y1: {det.box.y1}, x2: {det.box.x2}, y2: {det.box.y2}]")
-    print("------------------------")
+        detection_summary.append(f"- Class: {det.class_name} ({det.confidence:.2%})")
+        detection_summary.append(f"  - Bounding Box: [x1: {det.box.x1}, y1: {det.box.y1}, x2: {det.box.x2}, y2: {det.box.y2}]")
+    detection_summary.append("------------------------")
+    logging.info("\n".join(detection_summary))
 
 def detect_objects(args: argparse.Namespace):
     """Handles object detection using YOLOv8."""
@@ -33,7 +35,7 @@ def detect_objects(args: argparse.Namespace):
     input_image_path = args.input
 
     if not os.path.exists(input_image_path):
-        sys.stderr.write(f"Error: Input image not found at {input_image_path}\n")
+        logging.error(f"Input image not found at {input_image_path}")
         return
 
     try:
@@ -43,14 +45,14 @@ def detect_objects(args: argparse.Namespace):
         # 2. Read the image
         image = cv2.imread(input_image_path)
         if image is None:
-            sys.stderr.write(f"Error: Could not read image file at {input_image_path}\n")
+            logging.error(f"Could not read image file at {input_image_path}")
             return
 
         # 3. Perform detection using the core library
-        print("Starting object detection...")
+        logging.info("Starting object detection...")
         confidence = args.probability / 100.0
         detections = detector.detect_from_image(image, conf_threshold=confidence)
-        print("Detection complete.")
+        logging.info("Detection complete.")
 
         # 4. Draw detections on the image
         output_image = draw_detections(image, detections)
@@ -65,13 +67,13 @@ def detect_objects(args: argparse.Namespace):
         # 6. Print results to the console
         print_detections(detections, output_dir)
     except Exception as e:
-        sys.stderr.write(f"An error occurred during detection: {e}\n")
+        logging.error(f"An error occurred during detection: {e}", exc_info=True)
 
 
 def train_model(args: argparse.Namespace):
     """Handles model training using YOLOv8."""
 
-    print("Starting model training...")
+    logging.info("Starting model training...")
     # Load a pretrained model (e.g., yolov8n.pt) to start training from
     model = YOLO(args.pretrained_model)
 
@@ -86,49 +88,49 @@ def train_model(args: argparse.Namespace):
             name=f"train_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
         )
     except Exception as e:
-        sys.stderr.write(f"An error occurred during training: {e}\n")
-    print("Training complete. The best model is saved in the 'runs/train/...' directory.")
+        logging.error(f"An error occurred during training: {e}", exc_info=True)
+    logging.info("Training complete. The best model is saved in the 'runs/train/...' directory.")
 
 def evaluate_model(args: argparse.Namespace):
     """Handles model evaluation using YOLOv8 and prints performance metrics."""
     model_path = args.model
 
     if model_path == 'latest':
-        print("Finding the latest trained model...")
+        logging.info("Finding the latest trained model...")
         train_dir = 'runs/train'
         if not os.path.isdir(train_dir):
-            sys.stderr.write(f"Error: Training directory '{train_dir}' not found. Please train a model first.\n")
+            logging.error(f"Training directory '{train_dir}' not found. Please train a model first.")
             return
 
         all_runs = [d for d in os.listdir(train_dir) if os.path.isdir(os.path.join(train_dir, d)) and d.startswith('train')]
         if not all_runs:
-            sys.stderr.write(f"Error: No training runs found in '{train_dir}'.\n")
+            logging.error(f"No training runs found in '{train_dir}'.")
             return
 
         latest_run = sorted(all_runs)[-1]
         model_path = os.path.join(train_dir, latest_run, 'weights', 'best.pt')
 
         if not os.path.exists(model_path):
-            sys.stderr.write(f"Error: 'best.pt' not found in the latest training run: {os.path.join(train_dir, latest_run)}\n")
+            logging.error(f"'best.pt' not found in the latest training run: {os.path.join(train_dir, latest_run)}")
             return
         
-        print(f"Found latest model: {model_path}")
+        logging.info(f"Found latest model: {model_path}")
 
-    print(f"Loading model for evaluation: {model_path}")
+    logging.info(f"Loading model for evaluation: {model_path}")
     try:
         model = YOLO(model_path)
     except Exception as e:
-        sys.stderr.write(f"An error occurred while loading the model: {e}\n")
+        logging.error(f"An error occurred while loading the model: {e}", exc_info=True)
         return
 
-    print(f"Starting evaluation on dataset specified in: {args.data}")
+    logging.info(f"Starting evaluation on dataset specified in: {args.data}")
     try:
         # The val() method runs evaluation and prints a comprehensive table of metrics.
         metrics = model.val(data=args.data)
-        print("Evaluation complete. See the metrics table above for performance details (mAP, Precision, Recall).")
+        logging.info("Evaluation complete. See the metrics table above for performance details (mAP, Precision, Recall).")
         # The metrics object itself contains detailed data if you want to process it further.
     except Exception as e:
-        sys.stderr.write(f"An error occurred during evaluation: {e}\n")
+        logging.error(f"An error occurred during evaluation: {e}", exc_info=True)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -186,6 +188,20 @@ def main():
         parser.print_help()
         sys.exit(1)
     
+    # --- Setup Logging ---
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    log_file = os.path.join(log_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d')}.log")
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler(sys.stdout) # Also print to console
+        ]
+    )
+
     args.func(args)
 
 if __name__ == "__main__":
