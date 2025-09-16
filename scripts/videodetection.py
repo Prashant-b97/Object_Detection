@@ -163,8 +163,36 @@ def process_video(
                 # Assign a unique color to each track ID
                 if track_id not in track_colors:
                     track_colors[track_id] = (np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255))
-                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), track_colors[track_id], 2)
-                cv2.putText(annotated_frame, f"ID: {track_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, track_colors[track_id], 2)
+                color = track_colors[track_id]
+                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), color, 2)
+
+                # Try to fetch the detected class name and confidence from the tracker
+                det_class = getattr(track, 'det_class', None)
+                if det_class is None and hasattr(track, 'get_det_class'):
+                    try:
+                        det_class = track.get_det_class()
+                    except Exception:
+                        det_class = None
+
+                det_conf = getattr(track, 'det_conf', None)
+                if det_conf is None and hasattr(track, 'get_det_conf'):
+                    try:
+                        det_conf = track.get_det_conf()
+                    except Exception:
+                        det_conf = None
+
+                # Build label: class and confidence (if available) with the track ID
+                if det_class is None:
+                    det_class = 'object'
+                if det_conf is None:
+                    label = f"{det_class} | ID:{track_id}"
+                else:
+                    try:
+                        label = f"{det_class} {float(det_conf):.2f} | ID:{track_id}"
+                    except Exception:
+                        label = f"{det_class} | ID:{track_id}"
+
+                cv2.putText(annotated_frame, label, (x1, max(y1 - 10, 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
         else:
             # Visualize the results on the frame using the library's built-in plotter.
             annotated_frame = results[0].plot()

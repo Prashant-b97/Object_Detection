@@ -136,9 +136,9 @@ The output image will be saved in the `runs/detect/predict/` directory.
 
 A separate script, `videodetection.py`, handles video sources.
 
-**To run on a live webcam feed:**
+**To run on a live webcam feed (view only):**
 ```bash
-python -m scripts.videodetection --model yolov8n.pt
+python scripts/videodetection.py --model yolov8n.pt
 ```
 
 **To process a video file and view the output:**
