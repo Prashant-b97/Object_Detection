@@ -8,9 +8,16 @@ import logging
 import datetime
 import argparse
 import numpy as np
+from pathlib import Path
 from tqdm import tqdm
 from ultralytics import YOLO
 from deep_sort_realtime.deepsort_tracker import DeepSort
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from utils.logging_config import setup_logging
 
 # Import from our new core library
 # NOTE: We will use the library's built-in plot() for flexibility with different model types.
@@ -293,26 +300,6 @@ def main():
         max_frames=args.max_frames,
         frame_skip=args.frame_skip,
     )
-
-def setup_logging():
-    """Configures the logging for the application."""
-    # Check if handlers are already configured to prevent re-configuration.
-    if logging.getLogger().hasHandlers():
-        return
-
-    log_dir = "logs"
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d')}.log")
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
-
 if __name__ == "__main__":
     setup_logging()
     main()

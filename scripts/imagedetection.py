@@ -11,7 +11,8 @@ from ultralytics import YOLO
 from typing import List
 
 # Import from our new core library
-from object_detector.core import ObjectDetector, Detection, draw_detections
+from detector.core import ObjectDetector, Detection, draw_detections
+from utils.logging_config import setup_logging
 
 def print_detections(detections: List[Detection], output_dir: str):
     """Prints a summary of the detection results."""
@@ -189,27 +190,6 @@ def main():
         sys.exit(1)
     
     args.func(args)
-
-def setup_logging():
-    """Configures the logging for the application."""
-    # Check if handlers are already configured to prevent re-configuration,
-    # which can happen when tests import the module.
-    if logging.getLogger().hasHandlers():
-        return
-
-    log_dir = "logs"
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d')}.log")
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
-
 if __name__ == "__main__":
     setup_logging()
     main()

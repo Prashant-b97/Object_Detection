@@ -5,11 +5,11 @@ import os
 import sys
 from io import StringIO
 
-# Add project root to the Python path to allow imports from object_detector and scripts
+# Add project root to the Python path to allow imports from detector and scripts
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import the new core components for mocking
-from object_detector.core import Detection, BoundingBox
+from detector.core import Detection, BoundingBox
 
 # We need to import the module to be tested
 from scripts import imagedetection
