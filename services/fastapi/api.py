@@ -1,10 +1,18 @@
+from __future__ import annotations
+
 import io
+import sys
+from pathlib import Path
 from typing import List
 
 import numpy as np
 from fastapi import FastAPI, File, Query, UploadFile
 from PIL import Image
 from pydantic import BaseModel
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from detector.core import ObjectDetector
 

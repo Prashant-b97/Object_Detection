@@ -1,0 +1,19 @@
+ObjectDetection/
+├── assets/                # README screenshots and GIFs (Grad-CAM, video demos)
+├── datasets/              # Placeholder for training datasets
+├── detector/              # Core detection logic and Grad-CAM utilities
+├── logs/                  # Application logs (e.g., app.log)
+├── notes/                 # Weekly recap notes
+├── output/                # Scratch directory for exported artefacts
+├── runs/                  # Ultralytics run outputs (detect/train)
+├── sample_data/           # Sample media assets (images/videos)
+├── sample_input/          # Example inputs for CLI usage
+├── scripts/               # CLI entry points for image/video workflows
+├── services/
+│   ├── fastapi/           # FastAPI service + Dockerfile
+│   └── gradio/            # Gradio web UI + Dockerfile
+├── tests/                 # Unit/integration tests
+├── utils/                 # Shared helpers (logging, downloads)
+├── requirements.txt       # Python dependencies
+├── README.md              # Project documentation
+└── yolov8*.pt             # YOLO weight files (small, nano, pose)

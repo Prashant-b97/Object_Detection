@@ -48,8 +48,8 @@ The detector supports Grad-CAM overlays to highlight where the model focused whi
 
 To complement the command-line tools, the project includes a user-friendly web interface and a REST API for greater accessibility.
 
-*   **Gradio Web UI (`app.py`):** A simple, powerful interface for running object detection, pose estimation, and video processing directly in your browser.
-*   **FastAPI REST API (`api.py`):** A high-performance API endpoint (`/detect`) that accepts an image and returns structured JSON data with all detected objects.
+*   **Gradio Web UI (`services/gradio/app.py`):** A simple, powerful interface for running object detection, pose estimation, and video processing directly in your browser.
+*   **FastAPI REST API (`services/fastapi/api.py`):** A high-performance API endpoint (`/detect`) that accepts an image and returns structured JSON data with all detected objects.
 
 ### Gradio UI Overview
 ![Gradio Grad-CAM](assets/gradio_gradcam.png)
@@ -173,7 +173,7 @@ python videodetection.py --model yolov8n.pt --input path/to/your/video.mp4 --out
 ```
 
 **Simultaneous pose + detection (Gradio):**
-Launch `python app.py`, switch to the **Video Detection (Batch Mode)** tab, upload a clip, and enable *Enable Simultaneous Pose Estimation* to render skeletons and bounding boxes together. The processed video is streamed back in the UI and saved under `runs/detect_video/`.
+Launch `python services/gradio/app.py`, switch to the **Video Detection (Batch Mode)** tab, upload a clip, and enable *Enable Simultaneous Pose Estimation* to render skeletons and bounding boxes together. The processed video is streamed back in the UI and saved under `runs/detect_video/`.
 
 ### Evaluating a Model
 
@@ -205,6 +205,32 @@ To ensure the script is working correctly, you can run the included unit tests:
 python -m unittest discover
 python -m unittest tests.test_core    # Grad-CAM regression
 python -m unittest tests.test_api     # FastAPI endpoint contract
+```
+
+---
+
+## Repository Layout
+
+```text
+ObjectDetection/
+├── assets/                # README screenshots and GIFs (Grad-CAM, video demos)
+├── datasets/              # Placeholder for training datasets
+├── detector/              # Core detection logic and Grad-CAM utilities
+├── logs/                  # Application logs (e.g., app.log)
+├── notes/                 # Weekly recap notes
+├── output/                # Scratch directory for exported artefacts
+├── runs/                  # Ultralytics run outputs (detect/train)
+├── sample_data/           # Sample media assets (images/videos)
+├── sample_input/          # Example inputs for CLI usage
+├── scripts/               # CLI entry points for image/video workflows
+├── services/
+│   ├── fastapi/           # FastAPI service (`api.py`, Dockerfile)
+│   └── gradio/            # Gradio web UI (`app.py`, Dockerfile)
+├── tests/                 # Unit/integration tests
+├── utils/                 # Shared helpers (logging, downloads)
+├── requirements.txt       # Python dependencies
+├── README.md              # Project documentation
+└── yolov8*.pt             # YOLO weight files (nano, pose, etc.)
 ```
 
 ---
