@@ -43,10 +43,6 @@ The visualized skeleton uses color coding to distinguish different body parts:
 
 The detector supports Grad-CAM overlays to highlight where the model focused while predicting. In the Image Detection tab of the Gradio UI you can toggle **Show Grad-CAM Heatmap** to blend the attention map with the detected image. Under the hood, `detector.core.ObjectDetector.detect_with_heatmap()` registers PyTorch hooks on the final C2f backbone block, performs a gradient-enabled forward pass, and blends the resulting heatmap with the original frame.
 
-![Gradio Grad-CAM](assets/gradio_gradcam.png)
-
-![Video Pose + Detection Demo](assets/video_pose_combo.gif)
-
 
 ### Web Experience & API
 
@@ -57,6 +53,7 @@ To complement the command-line tools, the project includes a user-friendly web i
 
 ### Gradio UI Overview
 ![Gradio Grad-CAM](assets/gradio_gradcam.png)
+
 ![Video Pose + Detection Demo](assets/video_pose_combo.gif)
 
 *The GIF reuses the same trimmed sample clip to keep the repo lightweight while still showing simultaneous pose + detection.*
