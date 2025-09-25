@@ -1,1 +1,1 @@
-# Makes the tests directory a package so unittest discovery from repo root finds tests.
+# This file makes the 'tests' directory a Python package.

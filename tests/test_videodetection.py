@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock, ANY
+from unittest.mock import patch, MagicMock
 import os
 import sys
 from io import StringIO
@@ -90,42 +90,52 @@ class TestVideoDetection(unittest.TestCase):
 
         videodetection.process_video(MagicMock(), 'nonexistent.mp4', 0.5)
 
-        mock_log_error.assert_called_with("Could not open video source 'nonexistent.mp4'. It may be an invalid file or a device that is not available.")
+        mock_log_error.assert_called_with("Could not open video source '%s'.", 'nonexistent.mp4')
         mock_cap.release.assert_not_called()
 
-    @patch('scripts.videodetection.process_video')
-    @patch('scripts.videodetection.YOLO')
-    def test_main_webcam_input(self, mock_YOLO, mock_process_video):
+    @patch('scripts.videodetection.VideoDetector')
+    def test_main_webcam_input(self, mock_video_detector_cls):
         """Test main function with default webcam input."""
-        mock_model_instance = MagicMock()
-        mock_YOLO.return_value = mock_model_instance
+        mock_detector_instance = MagicMock()
+        mock_video_detector_cls.return_value = mock_detector_instance
         
         test_args = ['scripts/videodetection.py', '--model', 'm.pt']
         with patch.object(sys, 'argv', test_args):
             videodetection.main()
 
-        mock_YOLO.assert_called_once_with('m.pt')
-        mock_process_video.assert_called_once_with(mock_model_instance, 0, 0.25, output_path=ANY, enable_tracking=False, max_frames=0, frame_skip=0)
+        mock_video_detector_cls.assert_called_once_with(model_path='m.pt', pose_model_path=None)
+        mock_detector_instance.process_video_interactive.assert_called_once_with(
+            source=0,
+            conf_threshold=0.25,
+            output_path=None,
+            enable_tracking=False,
+            max_frames=0,
+            frame_skip=0,
+            enable_pose=False,
+        )
 
-    @patch('scripts.videodetection.os.path.join')
-    @patch('scripts.videodetection.os.path.splitext')
-    @patch('scripts.videodetection.os.path.basename')
-    @patch('scripts.videodetection.process_video')
-    @patch('scripts.videodetection.YOLO')
-    def test_main_video_file_input_with_output(self, mock_YOLO, mock_process_video, mock_basename, mock_splitext, mock_join):
+    @patch('scripts.videodetection.VideoDetector')
+    def test_main_video_file_input_with_output(self, mock_video_detector_cls):
         """Test main function with a video file path and output directory."""
-        mock_model_instance = MagicMock()
-        mock_YOLO.return_value = mock_model_instance
-        mock_basename.return_value = 'video.mp4'
-        mock_splitext.return_value = ('video', '.mp4')
-        mock_join.return_value = 'output/video_timestamp.mp4'
+        mock_detector_instance = MagicMock()
+        mock_detector_instance._generate_output_path.return_value = 'output/video_timestamp.mp4'
+        mock_video_detector_cls.return_value = mock_detector_instance
 
         test_args = ['scripts/videodetection.py', '--model', 'm.pt', '--input', 'video.mp4', '-p', '50', '-o', 'output']
         with patch.object(sys, 'argv', test_args):
             videodetection.main()
 
-        mock_YOLO.assert_called_once_with('m.pt')
-        mock_process_video.assert_called_once_with(mock_model_instance, 'video.mp4', 0.5, output_path='output/video_timestamp.mp4', enable_tracking=False, max_frames=0, frame_skip=0)
+        mock_video_detector_cls.assert_called_once_with(model_path='m.pt', pose_model_path=None)
+        mock_detector_instance._generate_output_path.assert_called_once_with('video.mp4', 'output')
+        mock_detector_instance.process_video_interactive.assert_called_once_with(
+            source='video.mp4',
+            conf_threshold=0.5,
+            output_path='output/video_timestamp.mp4',
+            enable_tracking=False,
+            max_frames=0,
+            frame_skip=0,
+            enable_pose=False,
+        )
 
     @patch('scripts.videodetection.os.path.getsize', return_value=2048)
     @patch('scripts.videodetection.os.path.exists', return_value=True)

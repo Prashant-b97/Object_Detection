@@ -1,5 +1,3 @@
-"""Utility helpers for ObjectDetection project."""
+"""Utility functions for the object detector."""
 
-from .logging_config import setup_logging, DEFAULT_LOG_PATH
-
-__all__ = ["setup_logging", "DEFAULT_LOG_PATH"]
+from .logging_config import setup_logging

@@ -18,7 +18,7 @@ Below is an example of running the detector on a sample image.
 
 ### Video Detection in Action
 
-The script can process videos and live webcam feeds, applying object detection in real-time.
+The script can process videos and live webcam feeds, applying object detection in real-time. In the Gradio UI you can optionally enable **simultaneous pose estimation**, which overlays YOLOv8 pose skeletons directly on top of the detected objects in the annotated video output.
 ![Video Detection Demo](assets/video_detection_demo.gif)
 
 ---
@@ -39,6 +39,23 @@ The visualized skeleton uses color coding to distinguish different body parts:
 
 ![Pose Estimation Demo](assets/pose_estimation_demo.gif)
 
+### Grad-CAM Explainability
+
+The detector supports Grad-CAM overlays to highlight where the model focused while predicting. In the Image Detection tab of the Gradio UI you can toggle **Show Grad-CAM Heatmap** to blend the attention map with the detected image. Under the hood, `detector.core.ObjectDetector.detect_with_heatmap()` registers PyTorch hooks on the final C2f backbone block, performs a gradient-enabled forward pass, and blends the resulting heatmap with the original frame.
+
+![Gradio Grad-CAM](assets/gradio_gradcam.png)
+
+### Web Experience & API
+
+To complement the command-line tools, the project includes a user-friendly web interface and a REST API for greater accessibility.
+
+*   **Gradio Web UI (`app.py`):** A simple, powerful interface for running object detection, pose estimation, and video processing directly in your browser.
+*   **FastAPI REST API (`api.py`):** A high-performance API endpoint (`/detect`) that accepts an image and returns structured JSON data with all detected objects.
+
+![Video Pose + Detection Demo](assets/video_pose_combo.gif)
+
+*Note: the GIF reuses the same short sample clip and was trimmed to keep project assets lightweight while still demonstrating simultaneous pose + detection.*
+
 ---
 
 ## Features
@@ -49,6 +66,8 @@ The visualized skeleton uses color coding to distinguish different body parts:
 - **Video & Webcam Support**: Perform real-time object detection on video files or a live webcam feed, with an option to save the output.
 - **Evaluate**: Measure model performance (mAP, Precision, Recall) on a validation dataset.
 - **Detailed & Organized Output**: Detection results include class names, confidence scores, and precise bounding box coordinates. Each run is saved in a unique, timestamped folder for easy tracking.
+- **Explainability & UX**: Grad-CAM, a Gradio web interface (image + video tabs), and an optional simultaneous pose overlay are included for quick demos.
+- **REST API**: A FastAPI `/detect` route returns structured JSON predictions, with a configurable confidence threshold.
 
 ---
 
@@ -96,7 +115,7 @@ This downloads a sample MP4 into the `sample_data/` directory (tries Ultralytics
 
 ## Usage
 
-This project provides two main scripts: `imagedetection.py` and `videodetection.py`.
+This project provides two main scripts: `imagedetection.py` and `videodetection.py`, plus companion web interfaces and APIs.
 
 > **Note:** The file paths used in the examples below (e.g., `path/to/your_dataset.yaml`) are placeholders. You must replace them with the actual paths to your files.
 
@@ -152,6 +171,9 @@ Use the `--output` flag to specify a directory. The script will automatically pr
 python videodetection.py --model yolov8n.pt --input path/to/your/video.mp4 --output runs/detect_video
 ```
 
+**Simultaneous pose + detection (Gradio):**
+Launch `python app.py`, switch to the **Video Detection (Batch Mode)** tab, upload a clip, and enable *Enable Simultaneous Pose Estimation* to render skeletons and bounding boxes together. The processed video is streamed back in the UI and saved under `runs/detect_video/`.
+
 ### Evaluating a Model
 
 After training, you can quantitatively measure your model's performance.
@@ -180,6 +202,8 @@ To ensure the script is working correctly, you can run the included unit tests:
 
 ```bash
 python -m unittest discover
+python -m unittest tests.test_core    # Grad-CAM regression
+python -m unittest tests.test_api     # FastAPI endpoint contract
 ```
 
 ---
@@ -187,4 +211,3 @@ python -m unittest discover
 ## License
 
 This project is licensed under the AGPL-3.0 License. See the `LICENSE` file for details. This is required due to the project's use of the `ultralytics` library.
-```
