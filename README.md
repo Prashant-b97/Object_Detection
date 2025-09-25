@@ -45,6 +45,9 @@ The detector supports Grad-CAM overlays to highlight where the model focused whi
 
 ![Gradio Grad-CAM](assets/gradio_gradcam.png)
 
+![Video Pose + Detection Demo](assets/video_pose_combo.gif)
+
+
 ### Web Experience & API
 
 To complement the command-line tools, the project includes a user-friendly web interface and a REST API for greater accessibility.
@@ -52,11 +55,12 @@ To complement the command-line tools, the project includes a user-friendly web i
 *   **Gradio Web UI (`app.py`):** A simple, powerful interface for running object detection, pose estimation, and video processing directly in your browser.
 *   **FastAPI REST API (`api.py`):** A high-performance API endpoint (`/detect`) that accepts an image and returns structured JSON data with all detected objects.
 
+### Gradio UI Overview
+![Gradio Grad-CAM](assets/gradio_gradcam.png)
 ![Video Pose + Detection Demo](assets/video_pose_combo.gif)
 
-*Note: the GIF reuses the same short sample clip and was trimmed to keep project assets lightweight while still demonstrating simultaneous pose + detection.*
+*The GIF reuses the same trimmed sample clip to keep the repo lightweight while still showing simultaneous pose + detection.*
 
----
 
 ## Features
 
