@@ -6,9 +6,15 @@ import datetime
 import logging
 import sys
 import argparse
+from pathlib import Path
 import cv2
 from ultralytics import YOLO
 from typing import List
+
+# Ensure project root (containing the 'detector' package) is on the import path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import from our new core library
 from detector.core import ObjectDetector, Detection, draw_detections

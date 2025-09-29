@@ -114,6 +114,12 @@ python utils/download_video.py
 
 This downloads a sample MP4 into the `sample_data/` directory (tries Ultralytics first, then a public mirror if unavailable).
 
+## Dataset Notes
+
+- The repository ships with the tiny `coco8` sample (8 images) wired through `datasets/my_first_dataset.yaml` for quick smoke tests.
+- Training on this set finishes fast but only covers the objects present in those few images, so expect limited detection breadth out of the box.
+- Mention this limitation if you demo the project; swapping in a larger dataset (COCO 2017, Open Images, etc.) is required for broader coverage.
+
 ## Usage
 
 This project provides two main scripts: `imagedetection.py` and `videodetection.py`, plus companion web interfaces and APIs.
