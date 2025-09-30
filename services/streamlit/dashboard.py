@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-METRICS_PATH = PROJECT_ROOT / "metrics.json"
+METRICS_PATH = PROJECT_ROOT / "reports/metrics.json"
 FPS_PATH = PROJECT_ROOT / "reports/fps_metrics.json"
 PLOT_SPECS = [
     (["BoxPR_curve.png", "PR_curve.png"], "Precision–Recall curve"),

@@ -2,12 +2,12 @@
 
 ## Summary
 - Completed a clean training loop on the corrected `my_first_dataset` split using `yolov8n.pt` as the backbone and logged the run at `runs/train/train_20250928_223128`.
-- Formalised metric tracking in `metrics.json` so each experiment captures its snapshot.
+- Formalised metric tracking in `reports/metrics.json` so each experiment captures its snapshot.
 - Added a Streamlit dashboard to visualise training artifacts and review metrics in one place.
 
 ## Custom vs. Pretrained Baseline
 - Custom model (`train_20250928_223128`): Precision 0.596, Recall 0.893, mAP50 0.888, mAP50-95 0.623.
-- Pretrained yolov8n baseline on the same dataset still needs a fresh evaluation run (entries left as `null` in `metrics.json`).
+- Pretrained yolov8n baseline on the same dataset still needs a fresh evaluation run (entries left as `null` in `reports/metrics.json`).
 - Early impression: the finetuned model already matches mAP50 from the baseline recorded on coco8, but we need the direct baseline pass to confirm any recall gains on `my_first_dataset`.
 
 ## Notable Observations

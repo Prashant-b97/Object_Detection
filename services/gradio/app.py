@@ -12,6 +12,8 @@ if str(ROOT_DIR) not in sys.path:
 from detector.core import ObjectDetector, draw_detections
 from scripts.videodetection import VideoDetector
 
+EVAL_DASHBOARD_URL = "http://localhost:8501"
+
 # --- Configuration ---
 DEFAULT_MODEL = "yolov8n.pt"
 POSE_MODEL = "yolov8n-pose.pt"
@@ -126,6 +128,24 @@ with gr.Blocks(
                 video_button = gr.Button("Process Video", variant="primary")
             with gr.Column():
                 video_output = gr.Video(label="Result")
+
+    with gr.Tab("📊 Evaluation Dashboard"):
+        gr.Markdown(
+            """
+            ### Review Training Metrics
+
+            Launch the Streamlit dashboard to inspect mAP/precision/recall trends, PR curves, and FPS benchmarks.
+
+            1. In a terminal, run:
+               ```bash
+               streamlit run services/streamlit/dashboard.py
+               ```
+            2. Once running, open the dashboard here:
+               - [Open Evaluation Dashboard]({url})
+
+            The dashboard reads experiment data from `reports/metrics.json`, so new evaluations will appear automatically once logged.
+            """.format(url=EVAL_DASHBOARD_URL)
+        )
 
     # --- Event Handlers ---
     image_button.click(
