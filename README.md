@@ -2,7 +2,7 @@
 🚀 A Python CLI for training, evaluating, and running YOLOv8 models for object detection & pose estimation on images, videos, and webcams.
 
 
-[![Python Tests](https://github.com/Prashant-b97/Object_Detection/actions/workflows/python-tests.yml/badge.svg)](https://github.com/Prashant-b97/Object_Detection/actions/workflows/python-tests.yml)
+[![Python Tests](https://github.com/Prashant-b97/Object_Detection/actions/workflows/python-tests.yml/badge.svg?branch=main)](https://github.com/Prashant-b97/Object_Detection/actions/workflows/python-tests.yml)
 
 ---
 
