@@ -3,7 +3,10 @@ from unittest.mock import patch, MagicMock, call, ANY
 import argparse
 import os
 import sys
+import tempfile
+import shutil
 from io import StringIO
+from pathlib import Path
 
 # Add project root to the Python path to allow imports from detector and scripts
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -91,24 +94,34 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         mock_model_instance = MagicMock()
         mock_yolo.return_value = mock_model_instance
 
-        args = argparse.Namespace(
-            data='dataset.yaml',
-            pretrained_model='yolov8n.pt',
-            epochs=10,
-            batch_size=8
-        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dataset_path = Path(tmpdir) / 'dataset.yaml'
+            dataset_path.write_text('names: []\n')
 
-        imagedetection.train_model(args)
+            args = argparse.Namespace(
+                data=str(dataset_path),
+                pretrained_model='yolov8n.pt',
+                epochs=10,
+                batch_size=8
+            )
+
+            imagedetection.train_model(args)
 
         mock_yolo.assert_called_once_with('yolov8n.pt')
-        mock_model_instance.train.assert_called_once_with(
-            data='dataset.yaml',
-            epochs=10,
-            batch=8,
-            imgsz=640,
-            project='runs/train',
-            name=ANY  # The name includes a timestamp, so we use ANY
-        )
+        self.assertTrue(mock_model_instance.train.called)
+        train_call = mock_model_instance.train.call_args
+        train_kwargs = train_call.kwargs
+        self.assertEqual(train_kwargs['epochs'], 10)
+        self.assertEqual(train_kwargs['batch'], 8)
+        self.assertEqual(train_kwargs['imgsz'], 640)
+        self.assertEqual(train_kwargs['project'], 'runs/train')
+        self.assertTrue(train_kwargs['name'].startswith('train_'))
+
+        dataset_arg = train_kwargs['data']
+        self.assertTrue(dataset_arg.startswith('runs/datasets/dataset_'))
+        self.assertTrue(Path(dataset_arg).exists())
+
+        shutil.rmtree('runs/datasets', ignore_errors=True)
         mock_log_info.assert_any_call("Starting model training...")
         mock_log_info.assert_any_call("Training complete. The best model is saved in the 'runs/train/...' directory.")
 
@@ -165,16 +178,27 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         mock_model_instance = MagicMock()
         mock_yolo.return_value = mock_model_instance
 
-        args = argparse.Namespace(data='coco8.yaml', model='latest')
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dataset_path = Path(tmpdir) / 'coco8.yaml'
+            dataset_path.write_text('names: []\n')
 
-        # --- Run Function ---
-        imagedetection.evaluate_model(args)
+            args = argparse.Namespace(data=str(dataset_path), model='latest')
+
+            # --- Run Function ---
+            imagedetection.evaluate_model(args)
 
         # --- Assertions ---
         # Check that it found the correct latest path
         expected_path = os.path.join('runs', 'train', 'train_20240102_000000', 'weights', 'best.pt')
         mock_yolo.assert_called_once_with(expected_path)
-        mock_model_instance.val.assert_called_once_with(data='coco8.yaml')
+        self.assertTrue(mock_model_instance.val.called)
+        val_call = mock_model_instance.val.call_args
+        val_kwargs = val_call.kwargs
+        dataset_arg = val_kwargs['data']
+        self.assertTrue(dataset_arg.startswith('runs/datasets/coco8_'))
+        self.assertTrue(Path(dataset_arg).exists())
+
+        shutil.rmtree('runs/datasets', ignore_errors=True)
 
     def test_main_no_command(self):
         """Test that main prints help and exits when no command is given."""

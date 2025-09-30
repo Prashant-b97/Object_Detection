@@ -6,10 +6,26 @@ import datetime
 import logging
 import sys
 import argparse
+import shutil
 from pathlib import Path
 import cv2
 from ultralytics import YOLO
 from typing import List
+
+
+def prepare_dataset_config(data_path_str: str) -> str:
+    """Copy the dataset YAML with a timestamp so each run keeps its own snapshot."""
+    data_path = Path(data_path_str)
+    if not data_path.exists():
+        return data_path_str
+
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    stamped_dir = Path("runs") / "datasets"
+    stamped_dir.mkdir(parents=True, exist_ok=True)
+    stamped_path = stamped_dir / f"{data_path.stem}_{timestamp}{data_path.suffix}"
+    shutil.copy2(data_path, stamped_path)
+    logging.info(f"Dataset config copied to: {stamped_path}")
+    return str(stamped_path)
 
 # Ensure project root (containing the 'detector' package) is on the import path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -84,10 +100,13 @@ def train_model(args: argparse.Namespace):
     # Load a pretrained model (e.g., yolov8n.pt) to start training from
     model = YOLO(args.pretrained_model)
 
+    # Stamp the dataset file so each run keeps its own configuration snapshot
+    data_cfg = prepare_dataset_config(args.data)
+
     # Train the model
     try:
         model.train(
-            data=args.data,
+            data=data_cfg,
             epochs=args.epochs,
             batch=args.batch_size,
             imgsz=640,  # Image size, a common default for YOLOv8
@@ -130,10 +149,11 @@ def evaluate_model(args: argparse.Namespace):
         logging.error(f"An error occurred while loading the model: {e}", exc_info=True)
         return
 
-    logging.info(f"Starting evaluation on dataset specified in: {args.data}")
+    data_cfg = prepare_dataset_config(args.data)
+    logging.info(f"Starting evaluation on dataset specified in: {data_cfg}")
     try:
         # The val() method runs evaluation and prints a comprehensive table of metrics.
-        metrics = model.val(data=args.data)
+        metrics = model.val(data=data_cfg)
         logging.info("Evaluation complete. See the metrics table above for performance details (mAP, Precision, Recall).")
         # The metrics object itself contains detailed data if you want to process it further.
     except Exception as e:
