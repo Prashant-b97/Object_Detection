@@ -1,0 +1,25 @@
+{
+  "model": "runs/train/train_20250928_223128/weights/best.pt",
+  "image": "sample_data/Street Scene.jpg",
+  "runs_per_resolution": 3,
+  "measurements": [
+    {
+      "resolution": 320,
+      "avg_time_ms": 83.17095833333325,
+      "fps": 12.023427648773646,
+      "runs": 3
+    },
+    {
+      "resolution": 480,
+      "avg_time_ms": 164.64887466666664,
+      "fps": 6.073530730316319,
+      "runs": 3
+    },
+    {
+      "resolution": 640,
+      "avg_time_ms": 284.47094433333325,
+      "fps": 3.515297501976984,
+      "runs": 3
+    }
+  ]
+}

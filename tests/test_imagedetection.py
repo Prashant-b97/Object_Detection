@@ -8,6 +8,17 @@ import shutil
 from io import StringIO
 from pathlib import Path
 
+# Stub heavy dependencies before importing project modules
+mock_cv2 = MagicMock()
+sys.modules.setdefault('cv2', mock_cv2)
+
+mock_numpy = MagicMock()
+sys.modules.setdefault('numpy', mock_numpy)
+
+mock_ultralytics = MagicMock()
+mock_ultralytics.YOLO = MagicMock()
+sys.modules.setdefault('ultralytics', mock_ultralytics)
+
 # Add project root to the Python path to allow imports from detector and scripts
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 

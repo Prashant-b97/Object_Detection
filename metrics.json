@@ -1,46 +1,46 @@
- {
-   "week_3_lite_training": {
-     "dataset": "coco8",
-     "notes": "Accidental first training run. Model was trained and evaluated on the coco8 sample dataset instead of the custom one due to a misconfigured YAML file. This provides a baseline for fine-tuning effects.",
-     "custom_model": {
-       "model_path": "runs/train/train_20250928_221251/weights/best.pt",
-       "metrics": {
-         "precision": 0.596,
-         "recall": 0.893,
-         "mAP50": 0.888,
-         "mAP50-95": 0.623
-       }
-     },
-     "pretrained_baseline": {
-       "model_path": "yolov8n.pt",
-       "metrics": {
-         "precision": 0.621,
-         "recall": 0.833,
-         "mAP50": 0.888,
-         "mAP50-95": 0.63
-       }
-     }
-   },
-   "week_3_lite_training_v2": {
-     "dataset": "my_first_dataset",
-     "notes": "Corrected training run. Model was trained and evaluated on the small custom dataset.",
-     "custom_model": {
-       "model_path": "runs/train/train_YYYYMMDD_HHMMSS/weights/best.pt",
-       "metrics": {
-         "precision": 0.0,
-         "recall": 0.0,
-         "mAP50": 0.0,
-         "mAP50-95": 0.0
-       }
-     },
-     "pretrained_baseline": {
-       "model_path": "yolov8n.pt",
-       "metrics": {
-         "precision": 0.0,
-         "recall": 0.0,
-         "mAP50": 0.0,
-         "mAP50-95": 0.0
-       }
-     }
-   }
- }
+{
+  "week_3_lite_training": {
+    "dataset": "coco8",
+    "notes": "Accidental first training run. Model was trained and evaluated on the coco8 sample dataset instead of the custom one due to a misconfigured YAML file. This provides a baseline for fine-tuning effects.",
+    "custom_model": {
+      "model_path": "runs/train/train_20250928_221251/weights/best.pt",
+      "metrics": {
+        "precision": 0.596,
+        "recall": 0.893,
+        "mAP50": 0.888,
+        "mAP50-95": 0.623
+      }
+    },
+    "pretrained_baseline": {
+      "model_path": "yolov8n.pt",
+      "metrics": {
+        "precision": 0.621,
+        "recall": 0.833,
+        "mAP50": 0.888,
+        "mAP50-95": 0.63
+      }
+    }
+  },
+  "week_3_lite_training_v2": {
+    "dataset": "my_first_dataset",
+    "notes": "Corrected training run. Model was trained and evaluated on the small custom dataset.",
+    "custom_model": {
+      "model_path": "runs/train/train_20250928_223128/weights/best.pt",
+      "metrics": {
+        "precision": 0.596,
+        "recall": 0.893,
+        "mAP50": 0.888,
+        "mAP50-95": 0.623
+      }
+    },
+    "pretrained_baseline": {
+      "model_path": "yolov8n.pt",
+      "metrics": {
+        "precision": 0.621,
+        "recall": 0.833,
+        "mAP50": 0.888,
+        "mAP50-95": 0.63
+      }
+    }
+  }
+}

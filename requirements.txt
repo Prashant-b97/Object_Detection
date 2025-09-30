@@ -5,3 +5,4 @@ deep-sort-realtime
 gradio
 fastapi
 uvicorn[standard]
+streamlit
