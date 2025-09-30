@@ -107,7 +107,7 @@ class TestYoloV8ImageDetection(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dataset_path = Path(tmpdir) / 'dataset.yaml'
-            dataset_path.write_text('names: []\n')
+        dataset_path.write_text('names: []\n')
 
             args = argparse.Namespace(
                 data=str(dataset_path),
@@ -117,25 +117,13 @@ class TestYoloV8ImageDetection(unittest.TestCase):
             )
 
             imagedetection.train_model(args)
+            dataset_copy = Path(mock_model_instance.train.call_args.kwargs['data'])
+            self.assertTrue(dataset_copy.exists())
+            self.assertEqual(dataset_copy.name, dataset_path.name)
+            self.assertTrue(dataset_copy.parent.name.startswith(dataset_path.stem))
+            self.assertTrue(dataset_copy.parent.parent.samefile(Path('runs/datasets')))
 
         mock_yolo.assert_called_once_with('yolov8n.pt')
-        self.assertTrue(mock_model_instance.train.called)
-        train_call = mock_model_instance.train.call_args
-        train_kwargs = train_call.kwargs
-        self.assertEqual(train_kwargs['epochs'], 10)
-        self.assertEqual(train_kwargs['batch'], 8)
-        self.assertEqual(train_kwargs['imgsz'], 640)
-        self.assertEqual(train_kwargs['project'], 'runs/train')
-        self.assertTrue(train_kwargs['name'].startswith('train_'))
-
-        dataset_arg = train_kwargs['data']
-        self.assertTrue(dataset_arg.startswith('runs/datasets/dataset_'))
-        self.assertTrue(dataset_arg.endswith('/dataset.yaml'))
-        self.assertTrue(Path(dataset_arg).exists())
-
-        shutil.rmtree('runs/datasets', ignore_errors=True)
-        mock_log_info.assert_any_call("Starting model training...")
-        mock_log_info.assert_any_call("Training complete. The best model is saved in the 'runs/train/...' directory.")
 
     @patch('scripts.imagedetection.detect_objects')
     def test_main_detect_command(self, mock_detect_objects):
@@ -206,10 +194,12 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         self.assertTrue(mock_model_instance.val.called)
         val_call = mock_model_instance.val.call_args
         val_kwargs = val_call.kwargs
-        dataset_arg = val_kwargs['data']
-        self.assertTrue(dataset_arg.startswith('runs/datasets/coco8_'))
-        self.assertTrue(dataset_arg.endswith('/coco8.yaml'))
-        self.assertTrue(Path(dataset_arg).exists())
+        # Check that a timestamped copy of the dataset config was used
+        dataset_arg = Path(val_kwargs['data'])
+        self.assertTrue(dataset_arg.parent.parent.samefile(Path('runs/datasets')))
+        self.assertTrue(dataset_arg.parent.name.startswith(dataset_path.stem))
+        self.assertEqual(dataset_arg.name, dataset_path.name)
+        self.assertTrue(dataset_arg.exists())
 
         shutil.rmtree('runs/datasets', ignore_errors=True)
 

@@ -16,13 +16,31 @@ from typing import List
 def prepare_dataset_config(data_path_str: str) -> str:
     """Copy the dataset YAML with a timestamp so each run keeps its own snapshot."""
     data_path = Path(data_path_str)
+    snapshots_root = Path("runs") / "datasets"
+
     if not data_path.exists():
         return data_path_str
 
+    try:
+        resolved_data = data_path.resolve()
+        resolved_root = snapshots_root.resolve()
+    except FileNotFoundError:
+        resolved_data = data_path.resolve()
+        resolved_root = snapshots_root
+
+    # Guard: if we are already inside runs/datasets, do nothing.
+    if resolved_root in resolved_data.parents:
+        logging.debug(
+            "Dataset config '%s' already lives under '%s'; skipping snapshot.",
+            data_path_str,
+            snapshots_root,
+        )
+        return str(data_path)
+
     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    root = Path("runs") / "datasets" / f"{data_path.stem}_{timestamp}"
-    root.mkdir(parents=True, exist_ok=True)
-    stamped_path = root / data_path.name
+    target_dir = snapshots_root / data_path.stem
+    target_dir.mkdir(parents=True, exist_ok=True)
+    stamped_path = target_dir / f"{data_path.stem}_{timestamp}{data_path.suffix}"
     shutil.copy2(data_path, stamped_path)
     logging.info(f"Dataset config copied to: {stamped_path}")
     return str(stamped_path)
