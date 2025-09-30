@@ -107,7 +107,7 @@ class TestYoloV8ImageDetection(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dataset_path = Path(tmpdir) / 'dataset.yaml'
-        dataset_path.write_text('names: []\n')
+            dataset_path.write_text('names: []\n')
 
             args = argparse.Namespace(
                 data=str(dataset_path),
@@ -119,9 +119,12 @@ class TestYoloV8ImageDetection(unittest.TestCase):
             imagedetection.train_model(args)
             dataset_copy = Path(mock_model_instance.train.call_args.kwargs['data'])
             self.assertTrue(dataset_copy.exists())
+            self.assertEqual(dataset_copy.suffix, dataset_path.suffix)
             self.assertEqual(dataset_copy.name, dataset_path.name)
-            self.assertTrue(dataset_copy.parent.name.startswith(dataset_path.stem))
+            self.assertTrue(dataset_copy.parent.name.startswith(f"{dataset_path.stem}_"))
             self.assertTrue(dataset_copy.parent.parent.samefile(Path('runs/datasets')))
+
+        shutil.rmtree('runs/datasets', ignore_errors=True)
 
         mock_yolo.assert_called_once_with('yolov8n.pt')
 
@@ -164,19 +167,21 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         self.assertEqual(call_args.data, 'd.yaml')
         self.assertEqual(call_args.model, 'latest')
 
+    @patch('scripts.imagedetection.prepare_dataset_config')
     @patch('scripts.imagedetection.os.path.isdir')
     @patch('scripts.imagedetection.os.listdir')
     @patch('scripts.imagedetection.os.path.exists')
     @patch('scripts.imagedetection.YOLO')
-    def test_evaluate_model_latest(self, mock_yolo, mock_exists, mock_listdir, mock_isdir):
+    def test_evaluate_model_latest(self, mock_yolo, mock_exists, mock_listdir, mock_isdir, mock_prepare):
         """Test evaluate_model with the 'latest' keyword."""
-        # --- Setup Mocks ---
         mock_isdir.return_value = True
         mock_listdir.return_value = ['train_20240101_000000', 'train_20240102_000000']
-        mock_exists.return_value = True # The best.pt file exists
-        
+        mock_exists.return_value = True
+
         mock_model_instance = MagicMock()
         mock_yolo.return_value = mock_model_instance
+        stamped_path = Path('runs/datasets/coco8_000000/coco8.yaml')
+        mock_prepare.return_value = str(stamped_path)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dataset_path = Path(tmpdir) / 'coco8.yaml'
@@ -184,24 +189,14 @@ class TestYoloV8ImageDetection(unittest.TestCase):
 
             args = argparse.Namespace(data=str(dataset_path), model='latest')
 
-            # --- Run Function ---
             imagedetection.evaluate_model(args)
 
-        # --- Assertions ---
-        # Check that it found the correct latest path
         expected_path = os.path.join('runs', 'train', 'train_20240102_000000', 'weights', 'best.pt')
         mock_yolo.assert_called_once_with(expected_path)
-        self.assertTrue(mock_model_instance.val.called)
+        mock_prepare.assert_called_once_with(str(dataset_path))
         val_call = mock_model_instance.val.call_args
         val_kwargs = val_call.kwargs
-        # Check that a timestamped copy of the dataset config was used
-        dataset_arg = Path(val_kwargs['data'])
-        self.assertTrue(dataset_arg.parent.parent.samefile(Path('runs/datasets')))
-        self.assertTrue(dataset_arg.parent.name.startswith(dataset_path.stem))
-        self.assertEqual(dataset_arg.name, dataset_path.name)
-        self.assertTrue(dataset_arg.exists())
-
-        shutil.rmtree('runs/datasets', ignore_errors=True)
+        self.assertEqual(val_kwargs['data'], str(stamped_path))
 
     def test_main_no_command(self):
         """Test that main prints help and exits when no command is given."""
