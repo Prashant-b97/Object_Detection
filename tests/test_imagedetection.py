@@ -130,6 +130,7 @@ class TestYoloV8ImageDetection(unittest.TestCase):
 
         dataset_arg = train_kwargs['data']
         self.assertTrue(dataset_arg.startswith('runs/datasets/dataset_'))
+        self.assertTrue(dataset_arg.endswith('/dataset.yaml'))
         self.assertTrue(Path(dataset_arg).exists())
 
         shutil.rmtree('runs/datasets', ignore_errors=True)
@@ -207,6 +208,7 @@ class TestYoloV8ImageDetection(unittest.TestCase):
         val_kwargs = val_call.kwargs
         dataset_arg = val_kwargs['data']
         self.assertTrue(dataset_arg.startswith('runs/datasets/coco8_'))
+        self.assertTrue(dataset_arg.endswith('/coco8.yaml'))
         self.assertTrue(Path(dataset_arg).exists())
 
         shutil.rmtree('runs/datasets', ignore_errors=True)

@@ -20,9 +20,9 @@ def prepare_dataset_config(data_path_str: str) -> str:
         return data_path_str
 
     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    stamped_dir = Path("runs") / "datasets"
-    stamped_dir.mkdir(parents=True, exist_ok=True)
-    stamped_path = stamped_dir / f"{data_path.stem}_{timestamp}{data_path.suffix}"
+    root = Path("runs") / "datasets" / f"{data_path.stem}_{timestamp}"
+    root.mkdir(parents=True, exist_ok=True)
+    stamped_path = root / data_path.name
     shutil.copy2(data_path, stamped_path)
     logging.info(f"Dataset config copied to: {stamped_path}")
     return str(stamped_path)
