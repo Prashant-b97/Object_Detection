@@ -19,6 +19,7 @@ Below is an example of running the detector on a sample image.
 ### Video Detection in Action
 
 The script can process videos and live webcam feeds, applying object detection in real-time. In the Gradio UI you can optionally enable **simultaneous pose estimation**, which overlays YOLOv8 pose skeletons directly on top of the detected objects in the annotated video output.
+
 ![Video Detection Demo](assets/video_detection_demo.gif)
 
 ---
