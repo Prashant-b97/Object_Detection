@@ -6,7 +6,13 @@ import cv2
 import numpy as np
 import torch
 from ultralytics import YOLO
-from ultralytics.nn.modules import C2f
+# `ultralytics` does not expose submodules in the stripped package we bundle for tests
+# and importing them here would crash in environments without the full install. Leave
+# the import in place when available, but guard it so our lightweight mocks still work.
+try:  # pragma: no cover - import guard for optional dependency
+    from ultralytics.nn.modules import C2f  # type: ignore
+except Exception:  # pragma: no cover - fall back to a stub
+    C2f = object
 
 
 def _letterbox_image(
